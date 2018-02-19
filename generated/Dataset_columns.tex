@@ -1,0 +1,69 @@
+\begin{tabular}{| l | l | l | p{0.4\textwidth} |}
+  \hline
+  Name & Type & Attributes & Description \\
+  \hline
+  dataset\_id & int & PRIMARY KEY &
+    A unique autoincrement field used as part of the primary key for
+    Dataset.
+    \\
+  registry\_id & int & PRIMARY KEY &
+    A different number for each potentially independent producer of
+    dataset\_ids, used as part of the primary key for Dataset to avoid
+    clashes.
+    \\
+  dataset\_type\_name & string & NOT NULL &
+    The name of the DatasetType associated with this Dataset; a
+    reference to the DatasetType table.
+    \\
+  run\_id & int & NOT NULL &
+    The ID of the Run that produced this Dataset, providing access to
+    coarse provenance information.  The registry\_id of the associated
+    Run is assumed to be the same as that of the Dataset itself.
+    \\
+  quantum\_id & int &  &
+    The ID of the Quantum that produced this Dataset, providing access
+    to fine-grained provenance information.  The registry\_id of the
+    associated Quantum is assumed to be the same as that of the
+    Dataset itself.  May be null for Datasets not produced by running
+    a \SuperTask.
+    \\
+  label & string &  &
+    DataUnit link; see Label.
+    \\
+  skymap & string &  &
+    DataUnit link; see \SkyMap.
+    \\
+  tract & int &  &
+    DataUnit link; see Tract.
+    \\
+  patch & int &  &
+    DataUnit link; see Patch.
+    \\
+  skypix & int &  &
+    DataUnit link; see \SkyPix.
+    \\
+  camera & string &  &
+    DataUnit link; see Camera.
+    \\
+  valid\_first & int &  &
+    DataUnit link; see ExposureRange.
+    \\
+  valid\_last & int &  &
+    DataUnit link; see ExposureRange.
+    \\
+  abstract\_filter & string &  &
+    DataUnit link; see AbstractFilter.
+    \\
+  physical\_filter & string &  &
+    DataUnit link; see PhysicalFilter.
+    \\
+  visit & int &  &
+    DataUnit link; see Visit.
+    \\
+  exposure & int &  &
+    DataUnit link; see Exposure.
+    \\
+  sensor & string &  &
+    DataUnit link; see \Sensor.
+    \\
+\end{tabular}
