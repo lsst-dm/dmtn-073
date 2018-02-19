@@ -1,8 +1,7 @@
 \documentclass[DM,toc]{lsstdoc}
 
-\usepackage{subfig}
-\usepackage{fancyvrb}
-\usepackage{framed}
+\usepackage{hyperref}
+\usepackage{graphicx}
 
 \title{The Gen3 Butler Registry Schema}
 
@@ -39,8 +38,23 @@ The tables and figures in this document (including the descriptions of table col
 \section{Datasets}
 \label{sec:datasets}
 
-\section{The Dataset Table}
+\subsection{The Dataset Table}
 \label{sec:the-dataset-table}
+
+\begin{table}
+    {\footnotesize
+    \include{generated/Dataset_columns}
+    }
+    \caption{Dataset Table Columns}
+    \label{tbl:Dataset}
+\end{table}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{generated/Dataset_relationships}
+    \caption{Dataset Table Relationships}
+    \label{rel:Dataset}
+\end{figure}
 
 \subsection{DatasetTypes and StorageClasses}
 \label{sec:datasettypes-and-storageclasses}

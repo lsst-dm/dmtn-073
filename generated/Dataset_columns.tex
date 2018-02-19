@@ -1,0 +1,100 @@
+  \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+    \hline
+    \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+    \hline
+  dataset\_id & int & PRIMARY KEY &
+    A unique autoincrement field used as part of the primary key for
+    Dataset.
+    \\
+\hline
+  registry\_id & int & PRIMARY KEY &
+    A different number for each potentially independent producer of
+    dataset\_ids, used as part of the primary key for Dataset to avoid
+    clashes.
+    \\
+\hline
+  dataset\_type\_name & string & NOT NULL &
+    The name of the DatasetType associated with this Dataset; a
+    reference to the DatasetType table.
+    \\
+\hline
+  run\_id & int & NOT NULL &
+    The ID of the Run that produced this Dataset, providing access to
+    coarse provenance information.  The registry\_id of the associated
+    Run is assumed to be the same as that of the Dataset itself.
+    \\
+\hline
+  quantum\_id & int &  &
+    The ID of the Quantum that produced this Dataset, providing access
+    to fine-grained provenance information.  The registry\_id of the
+    associated Quantum is assumed to be the same as that of the
+    Dataset itself.  May be null for Datasets not produced by running
+    a SuperTask.
+    \\
+\hline
+  label & string &  &
+    DataUnit link; see Label.
+    \\
+\hline
+  skymap & string &  &
+    DataUnit link; see SkyMap.
+    \\
+\hline
+  tract & int &  &
+    DataUnit link; see Tract.
+    \\
+\hline
+  patch & int &  &
+    DataUnit link; see Patch.
+    \\
+\hline
+  skypix & int &  &
+    DataUnit link; see SkyPix.
+    \\
+\hline
+  camera & string &  &
+    DataUnit link; see Camera.
+    \\
+\hline
+  valid\_first & int &  &
+    DataUnit link; see ExposureRange.
+    \\
+\hline
+  valid\_last & int &  &
+    DataUnit link; see ExposureRange.
+    \\
+\hline
+  abstract\_filter & string &  &
+    DataUnit link; see AbstractFilter.
+    \\
+\hline
+  physical\_filter & string &  &
+    DataUnit link; see PhysicalFilter.
+    \\
+\hline
+  visit & int &  &
+    DataUnit link; see Visit.
+    \\
+\hline
+  exposure & int &  &
+    DataUnit link; see Exposure.
+    \\
+\hline
+  sensor & string &  &
+    DataUnit link; see Sensor.
+    \\
+\hline
+  \multicolumn{4}{|l|}{FOREIGN KEY (dataset\_type\_name) REFERENCES DatasetType (dataset\_type\_name)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (run\_id, registry\_id) REFERENCES Run (run\_id, registry\_id)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (quantum\_id, registry\_id) REFERENCES Quantum (quantum\_id, registry\_id)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (skymap) REFERENCES SkyMap (skymap)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (skymap, tract) REFERENCES Tract (skymap, tract)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (skymap, tract, patch) REFERENCES Patch (skymap, tract, patch)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (camera) REFERENCES Camera (camera)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (abstract\_filter) REFERENCES AbstractFilter (abstract\_filter)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (camera, physical\_filter) REFERENCES PhysicalFilter (camera, physical\_filter)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (camera, visit) REFERENCES Visit (camera, visit)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (camera, exposure) REFERENCES Exposure (camera, exposure)} \\
+  \multicolumn{4}{|l|}{FOREIGN KEY (camera, sensor) REFERENCES Sensor (camera, sensor)} \\
+\hline
+\end{tabular}
