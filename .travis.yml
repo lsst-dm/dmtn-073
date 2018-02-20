@@ -1,24 +1,17 @@
-sudo: false
+sudo: true
+dist: trusty
+services:
+  - docker
 language: python
-matrix:
-  include:
-    - python: "3.5"
-      env: LTD_MASON_BUILD=true
-install:
-  - pip install -r requirements.txt
-  - pip install "ltd-mason>=0.2,<0.3"
+python:
+  - '3.5'
+before_install:
+  - "pip install 'lander>=0.1.0,<0.2'"
 script:
-  - sphinx-build -b html -a -n -d _build/doctree . _build/html
-after_success:
-  - ltd-mason-travis --html-dir _build/html
+  # Compile PDF using containerized lsst-texmf
+  - "docker run --rm -v `pwd`:/workspace -w /workspace lsstsqre/lsst-texmf:latest sh -c 'make'"
+  # Deploy website. See https://github.com/lsst-sqre/lander for CLI options
+  - "lander --pdf DMTN-073.pdf --upload --lsstdoc DMTN-073.tex --env=travis --ltd-product dmtn-073"
 env:
   global:
-    - LTD_MASON_BUILD=false  # disable builds in regular text matrix
-    - LTD_MASON_PRODUCT="dmtn-073"
-    # Add AWS and LTD Keeper credentials as encrypted secrets here
-
-    - secure: "jAdZfl18qHh3GvAIfo1dzRa4DuVv7epHTKbhif2VF4fX/aQx1593k3CQKSuBONySegUdHMb3xu5+dpDOXEKkNgqkNA2zv4Ys4GLT0/15yoLMiEHsZS+7y6gTIbBC4nCAb9t7A+jKup1+2hwUhoB3GPB5VETB9jReoyjAhqjGrLUXmtz3bG/u0zTB/OSryBPmu7j3lpiDCFebI3T/iKicr9SJDsdnZPGWlHsBjf+lu8rjziR+EPuzMsJJ0e3mP/OA0tFF+NspdF+TH4FeuwFd1oQ66SDIL7y8ls5rc8j+GQ0DXsEikoGX2MFrd4qAwWJYn9nCbsI6AmH2f06C639c1vcYoGkZWMIovyj7r1EjpuS8jQxsy7m5gU/ffaQJmw8BVu/c5bKWdIQ2a1nyQBH5UoKGLVAQHHAx1SHiXEmTftw2a23paegymD8uop+DYNCOrUPk1J9mbuSNr7/4dD+VImcfRXhiF5rUSgZS60LUx4Obu5lFIuX5JqfrncEkzLganuK59jjnEToGJLXfPIr/tid+2PEZuKJCUo/ppcZ3YOZ63YE6L6yLSdrYi1xRJZ5NomRBNUI+jTyiQjVWWWswIsAEcGtwegHLYEzveJ18ZWLkeLkAMU8y4hUKJVlHlkQnVtabesHQjbTl2a6fvGgSrt8916h9ALogGWFWLxlQPXw="
-    - secure: "v2oPcE3DRcEMEW15+qrfaSilg04HDQdCtWwufoCaQZJGzt9nrnq186SqZLMu/KXLCdNm1XdRXFh6OdOOsvdyZT1ccECq5JmVNjfNYoqG/Pa0Fh6PWEIWApD4iSz/AFvSEPDBJ4s8KB48K2SgRmC4bXdG5Y8HAv2zcryw+La1dCbT85DU8mKekBnYGuDd/j+/1SfHvYAxIpmK77a4uxhNH51O8YTxGDfUBfykZL4z8nV3mQJBRl6bSbLBgvRoGDocMl5kdnc+/F3Fufnf6Ac7KZe6Eo4yxC37QtU8REzxkunbX4n78j+zZOPbMgGCQij/Rj62tErG62xnGjFNS+p0ZeTal9Nz/NeJbnaF7OFUfMNpW7nbo7TF3MUjv//JYfTsJt1Ip/ZHgMQm13fC3PoSrj5b9Rh7h5qhAFziqbERwIE3+GEinLZCQaWHfTkbCH33vgYtB6hP7qCwV/zILZpfHwF8evbuW+bbl8OyNinpR6lkX6MTlQn5IEPNZmyJ9GgdG4wT+qm5iC37xX6q32pDoCdR6LKjk3hb5gmBAx7NUjiMyfo+Pinnx2i/nlZRVbGGuhbbdl8nMH4e2GFDrKrVcvcNC6LHbgofGpAZsha7weKzlqwiu35hdlzII7pihNtwYdDu4UQfYEegODO7UHeqJkMd43eDPGhbX30De3dMVyI="
-    - secure: "sirvLD9yzuka1ABHIhHv0B4kbbPT+Xw6xUV+WdoUlckA+0JjtYO5AWXZAs/rQYvQCZ1e0If0LrTynqzU4bilUVg53nmnhq7+hSap+BD2qnKfZ1+EBIFESRwUqncEfutnvkFaQuuMjIoa/VudqTk+p9joKOcietYl8REhOvnXDV8J+1a5S4XOtB9YdL7GkC40ks0JnrovFBSywhKAgqgOFh5oYs+YAEs5k6Qz5Qp0YT6BaPfcHW1xywSoios+jLmIUzOiS2DJtEOiR3jAZqwKh+1VQROGow7DMYY9OwZ+9cdcQiW9gXUSiFW5gQc7dySVg6VavDLOsZHQ2zRdpbi3+WExgiLCmkmFsVD7yfSWjOPLeuB1UL05EbS1Fc+uDnKVFrkE94becU6m5ASBc1PNhBrt3wf4P3wJUPPHmlVy25s6em+ysMF0tVm/fNZQVSZZVyRUduj6D6EN3u5JA09EubDwYMjgWE4HYKJG49cgSOuAQJndTSmBW7Z7WB27w8ijaL9N+onsmN5ofsbwwhJtjbh5GsrCIGtvxTZGuXLH25xm0Rn6VtA9tydxREujuFRdcieHPC2llx1wvyZpF64NUuJAsqgwmfJZrj0GD8dAu6j7dX7681kdO9J9mbE83VFAdxm5zbf07Kw02LxnB4ei0wduBn5RlQ98DVGj1rNmwyU="
-    - secure: "ympSmAIOoj6DqJXvq84A8WMOJqKGnXAe/TXgnCYGt+SlQUy4m1FeIqtfw/fTRm+IlrhC4u5RReLP9HmFuFU8R7AF680onGAJxqqVU4ET+f78O8ZlWbrFNAdtc7vjlYgkZxa2mQ4lap2kg2v4GXk5H73jF15GLy6qXXdFtfbdEapftdbZXjNX1YWZelGKODRTRASQk4lvoct9ZpST+sbD5Jp1UK/uiyfuT4QiCZ52lb8eJ0055ymzlYxCW+R2o8Ou/XrrjB6uZBIXo+BpRFvXGSeg/LDYMFtVVzRKSUp23I80xm+YWejkW/f1bAxsgOddl/s/cLrfl2whTZ+l98IRPaAkEHLxSm02HGmGQlmt9NJRBaHc3yQn/TsSiEDRwnO5nVj1/Nma746+Fl5xi07Ow23SgvVW8nAZuS3utjBDwd8RKatR5Eyb5Zx8kM1sVRFM7q2t0gLwGxnuE1JBHWEysOCLYTdgDn4c7O4Mk+0MUN156BzKWoCoQlhkOAorhjxtLp7tJ6bloYsJoPK8GuqNYpCDdvw0IQcDzJ8H+fg3U+WbCDDvnHDicaqeaUcKisI1gaLAsodYLPodfBn2Cza+cGZsl1CQu7sy7E/Riuurs2gDusg2jF3vNd/K9PkhlrBT3bKpJghNDPkFpuPxq4SHpHHSuPlZGvIeoeF3EBVkzeo="
-    - secure: "ncvpTjYfqsAXKK1sJsUASwqpkDmgo4CMDRWkufHV6ghGNAOXk8HU+08M5T934QRvDgL0DwGQle2pUHGEpw03w18wx3C8UijT/yfz7N6LVvGoZVwcSFeQcPJVM+dRYaC4TvRKWt6Km3qRccfH1351PiLRF1lRGFIgn1SE7PYRBA4uQNckW9yznPMR3H0comerl2pps1x70bOb89U9zoCcmvIaBIf6XwQMhi7Iwat4JOLruxSc0Iq9WgKPZTY1QbH7EjKgVH4HeQczF6mmzd7ewraDeiCyjbrwbnXy426kwOvKNv5GDpB9J3TfxfiY1CuVV4OPV+taTvqkIZHc29fUCMVTsm/TKdp2G2JfkTKnpidP0HYwBpW1rrGRKz8cvFNdKU3V1RmEr8VHp0Cn15GhkFfEKi6t5lcjiA1zLHrlVZOfRx2r9K6XPBQoAfaWKcS4h3tK7lrMzTodii+QTW2KZ4owtTQw2yPi2lJV3WedO2FkAv1fN7HSDawjhPhn6jtVUk1rB6xXXzElKxt4V+3lLSdvX2hJBcb99NQObwUmiBDhvzK5Vtj/jT2hz1YfAZO7iwTAkV75Njy5OgYvKLxqkfYjBYjbUAQCE1X2D5YinAe2lpuVAoE35voPt0YaXfrmEfIprPt1L0CUb3Z2YfthhGkAOvHn3TUIHOly2If7L48="
+    # Add encrypted secrets here

@@ -1,0 +1,110 @@
+\documentclass[DM,toc]{lsstdoc}
+
+\usepackage{subfig}
+\usepackage{fancyvrb}
+\usepackage{framed}
+
+\title{The Gen3 Butler Registry Schema}
+
+\author{Jim Bosch}
+
+\setDocRef{DMTN-073}
+\date{2018-02-19}
+\setDocUpstreamLocation{\url{https://github.com/lsst-dm/dmtn-073}}
+
+\setDocAbstract{%
+Documentation for the SQL schema that will be used to manage datasets in the Gen3 Butler.
+}
+
+\setDocChangeRecord{%
+\addtohist{}{2018-02-19}{Initial version.}{J.~Bosch}
+%\addtohist{1}{yyyy-mm-dd}{Future changes}{Future person}
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+\label{sec:overview}
+
+This document is a human-readable description of the minimal SQL schema that will be used in the Gen3 Butler's Registry component.
+
+While some Registry instances may have additional tables, all must provide at least the tables and views described here, and are generally expected to use the mechanisms described here for most extensions.
+
+The normative, machine-readable version of the minimal schema can be found at: \verb`daf_butler:config/registry/default_schema.yaml`.
+The tables and figures in this document (including the descriptions of table columns) are generated from the contents of that file.
+
+
+\section{Datasets}
+\label{sec:datasets}
+
+\section{The Dataset Table}
+\label{sec:the-dataset-table}
+
+\subsection{DatasetTypes and StorageClasses}
+\label{sec:datasettypes-and-storageclasses}
+
+\subsection{Composite Datasets}
+\label{sec:composite-datasets}
+
+
+\section{DataUnits}
+\label{sec:dataunits}
+
+\subsection{Fundamental DataUnits}
+\label{sec:fundamental-dataunits}
+
+\subsection{Camera DataUnits}
+\label{sec:camera-dataunits}
+
+\subsection{SkyMap DataUnits}
+\label{sec:skymap-dataunits}
+
+\subsection{Joins Between DataUnits}
+\label{sec:joins-between-dataunits}
+
+
+\section{Collections and Provenance}
+\label{sec:collections-and-provenance}
+
+\subsection{Collections}
+\label{sec:collections}
+
+\subsection{Execution}
+\label{sec:excution}
+
+\subsection{Run}
+\label{sec:run}
+
+\subsection{Quantum}
+\label{sec:quantum}
+
+
+\section{Additional Metadata Tables}
+\label{sec:additional-metadata-tables}
+
+\subsection{StorageClass Metadata}
+\label{sec:storageclass-metadata}
+
+\subsection{DatasetType Metadata}
+\label{sec:datasettype-metadata}
+
+\subsection{DataUnit Metadata}
+\label{sec:dataunit-metadata}
+
+
+\section{Multi-User Environments}
+\label{sec:multi-user-environments}
+
+\subsection{Cross-Registry Auto-Increment Keys}
+\label{sec:cross-registry-auto-increment-keys}
+
+\subsection{Namespaces for Collections and DatasetTypes}
+\label{sec:namespaces-for-collections-and-datasettypes}
+
+\subsection{Combining Layered Databases}
+\label{sec:layered-databases}
+
+
+\end{document}
