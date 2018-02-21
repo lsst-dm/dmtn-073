@@ -1,30 +1,28 @@
 DOCTYPE = DMTN
 DOCNUMBER = 073
 DOCNAME = $(DOCTYPE)-$(DOCNUMBER)
+BRANCH = tickets/DM-12620
+SCHEMA_URL = https://raw.githubusercontent.com/lsst/daf_butler/$(BRANCH)/config/registry/default_schema.yaml
 
 TABLES = generated/Dataset_columns.tex
-
 GRAPHS = generated/Dataset_relationships.pdf
 
-# For Travis CI build: doesn't declare dependencies on generated inputs,
-# since Travis can't build them anyway.
-$(DOCNAME).pdf: $(DOCNAME).tex
+$(DOCNAME).pdf: $(DOCNAME).tex $(TABLES) $(GRAPHS)
 	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error
 
-# Remaining targets are for locals builds, and require daf_butler to be setup
-# and graphviz to be installed.  Run "make full" to make everything with
-# proper dependency management.
-regen:
-	python generated/regen.py
+generated/schema.yaml:
+	curl $(SCHEMA_URL) -o generated/schema.yaml
+
+%_relationships.dot %_columns.tex: generated/schema.yaml generated/regen.py
+	python generated/regen.py $*
 
 %_relationships.pdf: %_relationships.dot
 	dot -Tpdf $< > $@
 
-generated: regen $(TABLES) $(GRAPHS)
-
-full: generated $(DOCNAME).tex
-	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error
+generated: $(TABLES) $(GRAPHS)
 
 clean:
 	rm $(TABLES) $(GRAPHS)
 	latexmk -C
+
+.PHONY: clean generated

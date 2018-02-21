@@ -24,10 +24,12 @@
 
 import yaml
 import os
+import sys
+
 from collections import OrderedDict
 from textwrap import TextWrapper
 
-from lsst.utils import getPackageDir
+GENERATED_PATH, _ = os.path.split(__file__)
 
 
 # Load YAML files into OrderedDicts
@@ -175,18 +177,17 @@ class GraphFormatter:
         print('}', file=stream)
 
 
-def formatStandardTable(name, tree):
-    path, _ = os.path.split(__file__)
+def processTable(name, tree):
     node = tree["registry"]['schema']['tables'][name]
     tf = TableFormatter(name, node)
-    with open(os.path.join(path, name + "_columns.tex"), 'w') as f:
+    with open(os.path.join(GENERATED_PATH, name + "_columns.tex"), 'w') as f:
         tf.run(f)
     gf = GraphFormatter(name, node)
-    with open(os.path.join(path, name + "_relationships.dot"), 'w') as f:
+    with open(os.path.join(GENERATED_PATH, name + "_relationships.dot"), 'w') as f:
         gf.run(f)
 
 
-def processDataUnits(tree):
+def preprocessDataUnits(tree):
     dataset = tree['registry']['schema']['tables']['Dataset']
     done = OrderedDict()
     todo = tree['registry']['schema']['dataUnits']
@@ -234,12 +235,13 @@ def processDataUnits(tree):
             })
 
 
-def main(path):
-    with open(path, 'r') as f:
+def main(table):
+    with open(os.path.join(GENERATED_PATH, "schema.yaml"), 'r') as f:
         tree = yaml.safe_load(f)
-    processDataUnits(tree)
-    formatStandardTable("Dataset", tree)
+    preprocessDataUnits(tree)
+    processTable(table, tree)
 
 
 if __name__ == "__main__":
-    main(os.path.join(getPackageDir("daf_butler"), "config", "registry", "default_schema.yaml"))
+    _, table = os.path.split(sys.argv[1])
+    main(table)

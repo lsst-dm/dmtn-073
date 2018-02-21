@@ -3,5 +3,8 @@
 *.fls
 *.log
 *.out
-/*.pdf
+*.pdf
 *.toc
+*.yaml
+*.dot
+generated/*.tex
