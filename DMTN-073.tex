@@ -3,6 +3,10 @@
 \usepackage{hyperref}
 \usepackage{graphicx}
 
+\newcommand{\tblref}[1]{\hyperref[tbl:#1]{#1}}
+\widowpenalty=1000
+\clubpenalty=1000
+
 \title{The Gen3 Butler Registry Schema}
 
 \author{Jim Bosch}
@@ -38,16 +42,15 @@ The tables and figures in this document (including the descriptions of table col
 \section{Datasets}
 \label{sec:datasets}
 
-\subsection{The Dataset Table}
-\label{sec:the-dataset-table}
+The central table of the registry database is \tblref{Dataset}, which contains one record for every dataset managed by the registry.
 
-\begin{table}
-    {\footnotesize
+\subsubsection*{Dataset}
+\label{tbl:Dataset}
+
+{
+    \footnotesize
     \include{generated/Dataset_columns}
-    }
-    \caption{Dataset Table Columns}
-    \label{tbl:Dataset}
-\end{table}
+}
 
 \begin{figure}
     \centering
@@ -58,6 +61,28 @@ The tables and figures in this document (including the descriptions of table col
 
 \subsection{DatasetTypes and StorageClasses}
 \label{sec:datasettypes-and-storageclasses}
+
+\subsubsection*{DatasetType}
+\label{tbl:DatasetType}
+{
+    \footnotesize
+    \include{generated/DatasetType_columns}
+}
+
+\subsubsection*{DatasetTypeUnits}
+\label{tbl:DatasetTypeUnits}
+{
+    \footnotesize
+    \include{generated/DatasetTypeUnits_columns}
+}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{generated/DatasetTypeUnits_relationships}
+    \caption{DatasetTypeUnits Table Relationships}
+    \label{rel:DatasetTypeUnits}
+\end{figure}
+
 
 \subsection{Composite Datasets}
 \label{sec:composite-datasets}

@@ -4,14 +4,15 @@ DOCNAME = $(DOCTYPE)-$(DOCNUMBER)
 BRANCH = tickets/DM-12620
 SCHEMA_URL = https://raw.githubusercontent.com/lsst/daf_butler/$(BRANCH)/config/registry/default_schema.yaml
 
-TABLES = generated/Dataset_columns.tex
-GRAPHS = generated/Dataset_relationships.pdf
+TABLES = Dataset DatasetType DatasetTypeUnits
+COLUMNS = $(foreach tbl,$(TABLES),generated/$(tbl)_columns.tex)
+GRAPHS = $(foreach tbl,$(TABLES),generated/$(tbl)_relationships.pdf)
 
-$(DOCNAME).pdf: $(DOCNAME).tex $(TABLES) $(GRAPHS)
+$(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS)
 	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error
 
 generated/schema.yaml:
-	curl $(SCHEMA_URL) -o generated/schema.yaml
+	curl $(SCHEMA_URL) > generated/schema.yaml
 
 %_relationships.dot %_columns.tex: generated/schema.yaml generated/regen.py
 	python generated/regen.py $*
@@ -19,10 +20,10 @@ generated/schema.yaml:
 %_relationships.pdf: %_relationships.dot
 	dot -Tpdf $< > $@
 
-generated: $(TABLES) $(GRAPHS)
+generated: $(COLUMNS) $(GRAPHS)
 
 clean:
-	rm $(TABLES) $(GRAPHS)
+	rm $(COLUMNS) $(GRAPHS)
 	latexmk -C
 
 .PHONY: clean generated

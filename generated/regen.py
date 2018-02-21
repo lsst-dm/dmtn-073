@@ -25,8 +25,9 @@
 import yaml
 import os
 import sys
+from contextlib import contextmanager
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from textwrap import TextWrapper
 
 GENERATED_PATH, _ = os.path.split(__file__)
@@ -39,28 +40,9 @@ def orderedYamlCtor(loader, node):
 yaml.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, orderedYamlCtor)
 
 
-class ForeignKey:
+class Printer:
 
-    def __init__(self, node):
-        self.sources = node['src'] if isinstance(node['src'], list) else [node['src']]
-        targets = node['tgt'] if isinstance(node['tgt'], list) else [node['tgt']]
-        # strip out tables, leaving just the fields
-        self.targets = [t.split(".")[1] for t in targets]
-        # extract exactly one table from the original targets
-        try:
-            self.table, = set(t.split(".")[0] for t in targets)
-        except ValueError:
-            raise ValueError("Foreign key target columns have no/different tables: %s" % targets)
-
-    def sql(self):
-        return "FOREIGN KEY ({sources}) REFERENCES {table} ({targets})".format(
-            table=self.table, sources=", ".join(self.sources), targets=", ".join(self.targets)
-        )
-
-
-class TableFormatter:
-
-    ESC_TRANS = str.maketrans(
+    ESCAPE_TRANSLATION_DICT = str.maketrans(
         dict(
             [(c, '\\' + c) for c in '#$%&_{}'] +
             [('\\', '\\textbackslash{}'),
@@ -69,122 +51,237 @@ class TableFormatter:
         )
     )
 
-    def __init__(self, name, node):
+    def __init__(self, stream, indent=""):
+        self.stream = stream
+        self.indent = indent
+
+    def direct(self, text):
+        print(self.indent, text, sep="", file=self.stream)
+
+    def format(self_, text, *args, **kwds):
+        self_.direct(text.format(*args, **kwds))
+
+    def insert(self, text, *args):
+        self.direct(text % args)
+
+    def escape(self, text):
+        return text.translate(self.ESCAPE_TRANSLATION_DICT)
+
+    @contextmanager
+    def block(self, begin, end, indent="  "):
+        self.direct(begin)
+        yield Printer(stream=self.stream, indent=self.indent+indent)
+        self.direct(end)
+
+
+SourceTargetPair = namedtuple("SourceTargetPair", ["source", "target"])
+
+
+class TableVertex:
+    __slots__ = ("name", "columns", "links")
+
+    def __init__(self, name, columns, links):
         self.name = name
-        self.node = node
+        self.columns = columns
+        self.links = links
 
-    def run(self, stream):
-        self.open(stream)
-        self.columns(stream)
-        self.foreignKeys(stream)
-        self.close(stream)
+    def __eq__(self, other):
+        return self.name == other.name
 
-    def open(self, stream):
-        print(
-            r"  \begin{tabular}{| l | l | l | p{0.5\textwidth} |}",
-            r"    \hline",
-            r"    \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\",
-            r"    \hline",
-            sep='\n',
-            file=stream
-        )
+    def __ne__(self, other):
+        return not (self == other)
 
-    def columns(self, stream):
-        template = r"  {name} & {type} & {attributes} &"
-        wrapper = TextWrapper(width=70, initial_indent='    ', subsequent_indent='    ')
-        for column in self.node['columns']:
-            if column.get("primary_key", False):
-                attributes = "PRIMARY KEY"
-            elif not column.get("nullable", True):
-                attributes = "NOT NULL"
-            else:
-                attributes = ""
-            print(template.format(name=column['name'].translate(self.ESC_TRANS),
-                                  type=column['type'].translate(self.ESC_TRANS),
-                                  attributes=attributes),
-                  file=stream)
-            print(*wrapper.wrap(column['doc'].translate(self.ESC_TRANS)), sep='\n', file=stream)
-            print(r'    \\', file=stream)
-            print(r'\hline', file=stream)
+    def __hash__(self):
+        return hash(self.name)
 
-    def foreignKeys(self, stream):
-        for node in self.node.get('foreignKeys', ()):
-            text = ForeignKey(node).sql()
-            print(r'  \multicolumn{4}{|l|}{%s} \\' % text.translate(self.ESC_TRANS), file=stream)
-        print(r'\hline', file=stream)
+    def __str__(self):
+        return self.name
 
-    def close(self, stream):
-        print(r"\end{tabular}", file=stream)
+    def __repr__(self):
+        return "TableVertex(name={self.name}, columns={self.columns})".format(self=self)
 
+    def writeAll(self):
+        with open(os.path.join(GENERATED_PATH, self.name + "_columns.tex"), 'w') as f:
+            self.printColumns(Printer(stream=f))
+        with open(os.path.join(GENERATED_PATH, self.name + "_relationships.dot"), 'w') as f:
+            self.printRelationships(Printer(stream=f))
 
-class GraphFormatter:
+    def printColumns(self, printer, doForeignKeys=False):
+        with printer.block(begin=r"\begin{tabular}{| l | l | l | p{0.5\textwidth} |}",
+                           end=r"\end{tabular}") as p:
+            p.direct(r"\hline")
+            p.direct(r"\textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\")
+            p.direct(r"\hline")
+            template = r"{name} & {type} & {attributes} &"
+            wrapper = TextWrapper(width=70, initial_indent=p.indent+"  ", subsequent_indent=p.indent+"  ")
+            for column in self.columns:
+                if column.get("primary_key", False):
+                    attributes = "PRIMARY KEY"
+                elif not column.get("nullable", True):
+                    attributes = "NOT NULL"
+                else:
+                    attributes = ""
+                p.format(template, name=p.escape(column['name']), type=p.escape(column['type']),
+                         attributes=attributes)
+                for line in wrapper.wrap(p.escape(column['doc'])):
+                    p.direct(line)
+                p.direct(r'    \\')
+                p.direct(r'\hline')
+            if doForeignKeys:
+                for link in self.links.source:
+                    p.insert(r'  \multicolumn{4}{|l|}{%s} \\', p.escape(link.sql))
+            p.direct(r'\hline')
 
-    def __init__(self, name, node):
-        self.name = name
-        self.node = node
-        self.fKeys = [ForeignKey(n) for n in self.node.get("foreignKeys", ())]
-        self.sources = [n['name'] for n in self.node.get("columns", ())]
-        self.tables = OrderedDict()
-        # Make unique lists of target fields participated in foreign keys and group
-        # targets by table, keeping the original order as much as possible.
-        for fKey in self.fKeys:
-            if fKey.table not in self.tables:
-                self.tables[fKey.table] = list(fKey.targets)
-            else:
-                for target in self.fKey.targets:
-                    if target not in self.tables[fKey.table]:
-                        self.tables[fKey.table].append(target)
-
-    def vertex(self, stream, table, fields, rank=None):
-        print('    {table} [label=<'.format(table=table), file=stream)
-        print('      <table border="0" cellborder="1" cellpadding="6" cellspacing="0">', file=stream)
-        print('        <tr><td><b>{table}</b></td></tr>'.format(table=table), file=stream)
-        for field in fields:
-            print('        <tr><td port="{field}">{field}</td></tr>'.format(field=field), file=stream)
-        print('      </table>', file=stream)
-        print('    >];', file=stream)
-
-    def edges(self, stream, fKey):
-        template = '  {name}:{source} -> {table}:{target} '
-        '[dir="both" arrowtail="crowtee" arrowhead="nonetee"];'
-        for source, target in zip(fKey.sources, fKey.targets):
-            print(template.format(name=self.name, source=source, table=fKey.table, target=target),
-                  file=stream)
-
-    def run(self, stream):
-        print('digraph {name}_relationships {{'.format(name=self.name), file=stream)
-        print('  node [shape=plaintext, fontname=helvetica, fontsize=10]', file=stream)
-        print('  rankdir=LR', file=stream)
-        related = list(self.tables.items())
+    def printRelationships(self, printer):
+        # Make a dict of {<table>: <list-of-columns>} for any tables related
+        # to the focus table, and containing just the columns that participate
+        # in those relationships.
+        related = OrderedDict()
+        for edge in self.links.source:
+            assert edge.source.table is self
+            related.setdefault(edge.target.table, set()).update(edge.target.columns)
+        for edge in self.links.target:
+            assert edge.target.table is self
+            related.setdefault(edge.source.table, set()).update(edge.source.columns)
+        # We'll now turn the dict into a list of tuples so we can slice it;
+        # even entries will go on the left and odd on the right, with the
+        # node for self in the middle (those layout/rank hints make the layout
+        # graphviz produces much better).
+        related = list(related.items())
         even = related[::2]
         odd = related[1::2]
-        print('  {', file=stream)
-        print('    rank=min;', file=stream)
-        for table, targets in even:
-            self.vertex(stream, table, targets)
-        print('  }', file=stream)
-        print('  {', file=stream)
-        print('    rank=same;', file=stream)
-        self.vertex(stream, self.name, self.sources)
-        print('  }', file=stream)
-        print('  {', file=stream)
-        print('    rank=max;', file=stream)
-        for table, targets in odd:
-            self.vertex(stream, table, targets)
-        print('  }', file=stream)
-        for fKey in self.fKeys:
-            self.edges(stream, fKey)
-        print('}', file=stream)
+
+        colors = ["red", "green", "blue", "cyan", "magenta"]
+
+        printer.format('digraph {name}_relationships', name=self.name)
+        with printer.block(begin='{', end='}') as p2:
+            p2.direct('node [shape=plaintext, fontname=helvetica, fontsize=10]')
+            p2.direct('rankdir=LR')
+            with p2.block(begin="{", end="}") as p3:
+                p3.direct('rank=min;')
+                for table, columns in even:
+                    table.printGraphVizVertex(p3, columns=columns)
+            with p2.block(begin="{", end="}") as p3:
+                p3.direct('rank=same;')
+                self.printGraphVizVertex(p3)
+            with p2.block(begin="{", end="}") as p3:
+                p3.direct('rank=max;')
+                for table, columns in odd:
+                    table.printGraphVizVertex(p3, columns=columns)
+            for n, link in enumerate(self.links.source):
+                link.printGraphVizEdge(p2, color=colors[n%len(colors)])
+            for n, link in enumerate(self.links.target):
+                link.printGraphVizEdge(p2, color=colors[n%len(colors)])
+
+    def printGraphVizVertex(self, printer, columns=None):
+        printer.direct(self.name)
+        with printer.block(begin='[label=<', end='>];') as p2:
+            with p2.block(begin='<table border="0" cellborder="1" cellpadding="6" cellspacing="0">',
+                          end='</table>') as p3:
+                p3.format('<tr><td><b>{self.name}</b></td></tr>', self=self)
+                for column in self.columns:   # use self.columns to set order, as columns arg may be a set
+                    if columns is not None and column['name'] not in columns:
+                        continue
+                    p3.format('<tr><td port="{field}">{field}</td></tr>', field=column['name'])
 
 
-def processTable(name, tree):
-    node = tree["registry"]['schema']['tables'][name]
-    tf = TableFormatter(name, node)
-    with open(os.path.join(GENERATED_PATH, name + "_columns.tex"), 'w') as f:
-        tf.run(f)
-    gf = GraphFormatter(name, node)
-    with open(os.path.join(GENERATED_PATH, name + "_relationships.dot"), 'w') as f:
-        gf.run(f)
+class LinkPort(namedtuple("LinkPort", ["table", "columns", "many"])):
+    __slots__ = ()
+
+    def __str__(self):
+        return self.table.name
+
+    def __repr__(self):
+        return "LinkPort(name={self.table.name}, columns={self.columns})".format(self=self)
+
+    @classmethod
+    def fromForeignKeySource(cls, fKeyNode, sourceTable):
+        return cls(
+            table=sourceTable,
+            columns=fKeyNode['src'] if isinstance(fKeyNode['src'], list) else [fKeyNode['src']],
+            many=fKeyNode.get('many', True)
+        )
+
+    @classmethod
+    def fromForeignKeyTarget(cls, fKeyNode, vertices):
+        columns = []
+        tables = set()
+        if isinstance(fKeyNode['tgt'], list):
+            for t in fKeyNode['tgt']:
+                table, column = t.split(".")
+                columns.append(column)
+                tables.add(table)
+        else:
+            table, column = fKeyNode['tgt'].split(".")
+            columns.append(column)
+            tables.add(table)
+        assert len(tables) == 1, str(fKeyNode)
+        return cls(
+            table=vertices[tables.pop()],
+            columns=columns,
+            many=False
+        )
+
+    @property
+    def arrow(self):
+        """The GraphViz arrow head/tail type for this edge-vertex connection (`str`)."""
+        return "crowtee" if self.many else "nonetee"
+
+
+class LinkEdge(SourceTargetPair):
+    __slots__ = ()
+
+    @classmethod
+    def fromForeignKey(cls, fKeyNode, sourceTable, vertices):
+        result = cls(
+            source=LinkPort.fromForeignKeySource(fKeyNode, sourceTable=sourceTable),
+            target=LinkPort.fromForeignKeyTarget(fKeyNode, vertices=vertices),
+        )
+        result.source.table.links.source.append(result)
+        result.target.table.links.target.append(result)
+        return result
+
+    @property
+    def sql(self):
+        return "FOREIGN KEY ({srcColumns}) REFERENCES {targetTable} ({targetColumns})".format(
+            targetTable=self.target.table.name,
+            sourceColumns=", ".join(self.source.columns),
+            targetColumns=", ".join(self.target.columns),
+        )
+
+    def printGraphVizEdge(self, printer, color=None):
+        if color is not None:
+            color = 'color="{}"'.format(color)
+        else:
+            color = ""
+        template = (
+            "{self.source.table.name}:{source} -> {self.target.table.name}:{target} "
+            "[arrowtail={self.source.arrow} arrowhead={self.target.arrow} dir=both {color}]"
+        )
+        for source, target in zip(self.source.columns, self.target.columns):
+            printer.format(template, self=self, source=source, target=target, color=color)
+
+
+class SchemaGraph:
+
+    @classmethod
+    def fromTree(cls, tree):
+        vertices = OrderedDict()
+        # Add all tables (vertices)...
+        for name, node in tree["registry"]["schema"]["tables"].items():
+            vertices[name] = TableVertex(name=name, columns=list(node['columns']),
+                                         links=SourceTargetPair(source=[], target=[]))
+        # ...before adding any links (edges), since those need the table instances to exist.
+        edges = []
+        for name, node in tree["registry"]["schema"]["tables"].items():
+            for fKeyNode in node.get("foreignKeys", ()):
+                edges.append(LinkEdge.fromForeignKey(fKeyNode, sourceTable=vertices[name],
+                                                     vertices=vertices))
+        return cls(vertices=vertices, edges=edges)
+
+    def __init__(self, vertices, edges):
+        self.vertices = vertices
+        self.edges = edges
 
 
 def preprocessDataUnits(tree):
@@ -227,6 +324,8 @@ def preprocessDataUnits(tree):
                     foreignKey['src'].append(link['name'])
                     foreignKey['tgt'].append("%s.%s" % (table, link['name']))
             dataset['foreignKeys'].append(foreignKey)
+            # Add DataUnit table to the main list of tables
+            tree['registry']['schema']['tables'][table] = node['tables'][table]
         for link in node['link']:
             dataset['columns'].append({
                 'name': link['name'],
@@ -239,8 +338,8 @@ def main(table):
     with open(os.path.join(GENERATED_PATH, "schema.yaml"), 'r') as f:
         tree = yaml.safe_load(f)
     preprocessDataUnits(tree)
-    processTable(table, tree)
-
+    graph = SchemaGraph.fromTree(tree)
+    graph.vertices[table].writeAll()
 
 if __name__ == "__main__":
     _, table = os.path.split(sys.argv[1])
