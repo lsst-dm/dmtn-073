@@ -25,6 +25,7 @@
 import yaml
 import os
 import sys
+import itertools
 from contextlib import contextmanager
 
 from collections import OrderedDict, namedtuple
@@ -114,7 +115,7 @@ class TableVertex:
             p.direct(r"\hline")
             template = r"{name} & {type} & {attributes} &"
             wrapper = TextWrapper(width=70, initial_indent=p.indent+"  ", subsequent_indent=p.indent+"  ")
-            for column in self.columns:
+            for column in self.columns.values():
                 if column.get("primary_key", False):
                     attributes = "PRIMARY KEY"
                 elif not column.get("nullable", True):
@@ -127,10 +128,10 @@ class TableVertex:
                     p.direct(line)
                 p.direct(r'    \\')
                 p.direct(r'\hline')
-            if doForeignKeys:
+            if doForeignKeys and self.links.source:
                 for link in self.links.source:
                     p.insert(r'  \multicolumn{4}{|l|}{%s} \\', p.escape(link.sql))
-            p.direct(r'\hline')
+                p.direct(r'\hline')
 
     def printRelationships(self, printer):
         # Make a dict of {<table>: <list-of-columns>} for any tables related
@@ -151,7 +152,9 @@ class TableVertex:
         even = related[::2]
         odd = related[1::2]
 
-        colors = ["red", "green", "blue", "cyan", "magenta"]
+        colors = ["forestgreen", "steelblue", "firebrick",
+                  "purple", "saddlebrown",
+                  "limegreen", "navyblue", "crimson",]
 
         printer.format('digraph {name}_relationships', name=self.name)
         with printer.block(begin='{', end='}') as p2:
@@ -168,21 +171,25 @@ class TableVertex:
                 p3.direct('rank=max;')
                 for table, columns in odd:
                     table.printGraphVizVertex(p3, columns=columns)
-            for n, link in enumerate(self.links.source):
-                link.printGraphVizEdge(p2, color=colors[n%len(colors)])
-            for n, link in enumerate(self.links.target):
+            for n, link in enumerate(itertools.chain(self.links.source, self.links.target)):
                 link.printGraphVizEdge(p2, color=colors[n%len(colors)])
 
     def printGraphVizVertex(self, printer, columns=None):
         printer.direct(self.name)
         with printer.block(begin='[label=<', end='>];') as p2:
-            with p2.block(begin='<table border="0" cellborder="1" cellpadding="6" cellspacing="0">',
+            with p2.block(begin='<table border="0" cellborder="1" cellpadding="3" cellspacing="0">',
                           end='</table>') as p3:
                 p3.format('<tr><td><b>{self.name}</b></td></tr>', self=self)
-                for column in self.columns:   # use self.columns to set order, as columns arg may be a set
-                    if columns is not None and column['name'] not in columns:
+                skipped = []
+                for name in self.columns.keys():
+                    if columns is not None and name not in columns:
+                        skipped.append(name)
                         continue
-                    p3.format('<tr><td port="{field}">{field}</td></tr>', field=column['name'])
+                    p3.format('<tr><td port="{name}">{name}</td></tr>', name=name)
+                if len(skipped) == 1:
+                    p3.format('<tr><td>{name}</td></tr>', name=skipped[0])
+                elif len(skipped) > 1:
+                    p3.direct('<tr><td>...</td></tr>')
 
 
 class LinkPort(namedtuple("LinkPort", ["table", "columns", "many"])):
@@ -196,10 +203,16 @@ class LinkPort(namedtuple("LinkPort", ["table", "columns", "many"])):
 
     @classmethod
     def fromForeignKeySource(cls, fKeyNode, sourceTable):
+        columns = fKeyNode['src'] if isinstance(fKeyNode['src'], list) else [fKeyNode['src']]
+        pKeys = set(column['name'] for column in sourceTable.columns.values()
+                    if column.get("primary_key", False))
+        # This is a one-to-one join iff the foreign key columns include all
+        # primary key columns.
+        many = not (pKeys and pKeys.issubset(columns))
         return cls(
             table=sourceTable,
-            columns=fKeyNode['src'] if isinstance(fKeyNode['src'], list) else [fKeyNode['src']],
-            many=fKeyNode.get('many', True)
+            columns=columns,
+            many=many
         )
 
     @classmethod
@@ -269,7 +282,8 @@ class SchemaGraph:
         vertices = OrderedDict()
         # Add all tables (vertices)...
         for name, node in tree["registry"]["schema"]["tables"].items():
-            vertices[name] = TableVertex(name=name, columns=list(node['columns']),
+            vertices[name] = TableVertex(name=name,
+                                         columns=OrderedDict((c['name'], c) for c in node['columns']),
                                          links=SourceTargetPair(source=[], target=[]))
         # ...before adding any links (edges), since those need the table instances to exist.
         edges = []

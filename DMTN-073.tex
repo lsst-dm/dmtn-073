@@ -4,8 +4,24 @@
 \usepackage{graphicx}
 
 \newcommand{\tblref}[1]{\hyperref[tbl:#1]{#1}}
-\widowpenalty=1000
-\clubpenalty=1000
+
+\newcommand{\coltable}[1]{
+    \begin{table}
+        {\footnotesize
+        \include{generated/#1_columns}}
+        \caption{#1 Columns}
+        \label{tbl:#1}
+    \end{table}
+}
+
+\newcommand{\relgraph}[2][width=0.8\textwidth]{
+    \begin{figure}
+        \centering
+        \includegraphics[#1]{generated/#2_relationships}
+        \caption{#2 Relationships.}
+        \label{rel:#2}
+    \end{figure}
+}
 
 \title{The Gen3 Butler Registry Schema}
 
@@ -38,55 +54,29 @@ While some Registry instances may have additional tables, all must provide at le
 The normative, machine-readable version of the minimal schema can be found at: \verb`daf_butler:config/registry/default_schema.yaml`.
 The tables and figures in this document (including the descriptions of table columns) are generated from the contents of that file.
 
+All relationship diagrams on this document focus on a single table; columns in other tables may not be shown if they do not participate in a relationship to the focus table, and relationships between non-focus tables are not shown.  Colors are for disambiguation only.
 
 \section{Datasets}
 \label{sec:datasets}
 
 The central table of the registry database is \tblref{Dataset}, which contains one record for every dataset managed by the registry.
 
-\subsubsection*{Dataset}
-\label{tbl:Dataset}
-
-{
-    \footnotesize
-    \include{generated/Dataset_columns}
-}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.8\textwidth]{generated/Dataset_relationships}
-    \caption{Dataset Table Relationships}
-    \label{rel:Dataset}
-\end{figure}
+\coltable{Dataset}
+\relgraph[height=0.8\textheight]{Dataset}
 
 \subsection{DatasetTypes and StorageClasses}
 \label{sec:datasettypes-and-storageclasses}
 
-\subsubsection*{DatasetType}
-\label{tbl:DatasetType}
-{
-    \footnotesize
-    \include{generated/DatasetType_columns}
-}
+\coltable{DatasetType}
+\relgraph{DatasetType}
 
-\subsubsection*{DatasetTypeUnits}
-\label{tbl:DatasetTypeUnits}
-{
-    \footnotesize
-    \include{generated/DatasetTypeUnits_columns}
-}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.8\textwidth]{generated/DatasetTypeUnits_relationships}
-    \caption{DatasetTypeUnits Table Relationships}
-    \label{rel:DatasetTypeUnits}
-\end{figure}
-
+\coltable{DatasetTypeUnits}
+\coltable{DatasetTypeMetadata}
 
 \subsection{Composite Datasets}
 \label{sec:composite-datasets}
 
+\coltable{DatasetComposition}
 
 \section{DataUnits}
 \label{sec:dataunits}
@@ -110,15 +100,25 @@ The central table of the registry database is \tblref{Dataset}, which contains o
 \subsection{Collections}
 \label{sec:collections}
 
+\coltable{DatasetCollection}
+
 \subsection{Execution}
 \label{sec:excution}
+
+\coltable{Execution}
+\relgraph{Execution}
 
 \subsection{Run}
 \label{sec:run}
 
+\coltable{Run}
+\relgraph{Run}
+
 \subsection{Quantum}
 \label{sec:quantum}
 
+\coltable{Quantum}
+\relgraph{Quantum}
 
 \section{Additional Metadata Tables}
 \label{sec:additional-metadata-tables}
