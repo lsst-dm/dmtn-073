@@ -14,11 +14,11 @@
     \end{table}
 }
 
-\newcommand{\relgraph}[2][width=0.8\textwidth]{
+\newcommand{\relgraph}[3][width=0.8\textwidth]{
     \begin{figure}
         \centering
         \includegraphics[#1]{generated/#2_relationships}
-        \caption{#2 Relationships.}
+        \caption{#3}
         \label{rel:#2}
     \end{figure}
 }
@@ -56,8 +56,7 @@ The tables and figures in this document (including the descriptions of table col
 
 All relationship diagrams on this document focus on a single table; columns in other tables may not be shown if they do not participate in a relationship to the focus table, and relationships between non-focus tables are not shown.  Colors are for disambiguation only.
 
-\relgraph[width=0.8\textwidth]{DataUnit}
-\relgraph[height=0.8\textheight]{Other}
+\relgraph[width=\textwidth]{All}{Table Relationships}
 
 \section{Datasets}
 \label{sec:datasets}

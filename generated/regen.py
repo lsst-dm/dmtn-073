@@ -161,11 +161,9 @@ class Port(namedtuple("Port", ["table", "columns", "many"])):
     @classmethod
     def fromTreeSource(cls, fKeyTree, sourceTable):
         columns = cls.ensureList(fKeyTree['src'])
-        pKeys = set(column['name'] for column in sourceTable.columns.values()
-                    if column.get("primary_key", False))
         # This is a one-to-one join iff the foreign key columns include all
         # primary key columns.
-        many = not (pKeys and pKeys.issubset(columns))
+        many = not (sourceTable.pKey and set(sourceTable.pKey).issubset(columns))
         return cls(
             table=sourceTable,
             columns=columns,
@@ -314,26 +312,18 @@ class SchemaGraph:
                 toRemove.remove(tableName)
         self.removeTables(toRemove)
 
-    def printGraphViz(self, printer, lhs=(), rhs=()):
-        colors = ["forestgreen", "steelblue", "firebrick", "purple", "saddlebrown",
-                  "limegreen", "navyblue", "crimson",]
+    def printGraphViz(self, printer):
+        colors = ["lawngreen", "indigo", "magenta1", "orangered",
+                  "lightskyblue3", "lightcoral", "mediumpurple", "forestgreen",
+                  "royalblue", "firebrick1", "yellow4", "navyblue"]
         printer.direct('digraph relationships')
         with printer.block(begin='{', end='}') as p2:
             p2.direct('node [shape=plaintext fontname=helvetica fontsize=10]')
             p2.direct('edge [dir=both]')
             p2.direct('rankdir=LR')
             p2.direct('concentrate=true')
-            with p2.block(begin='{', end='}') as p3:
-                p3.direct("rank=min")
-                for tableName in rhs:
-                    self.tables[tableName].printGraphViz(p3)
-            for tableName, table in self.tables.items():
-                if tableName not in rhs and tableName not in lhs:
-                    table.printGraphViz(p3)
-            with p2.block(begin='{', end='}') as p3:
-                p3.direct("rank=max")
-                for tableName in lhs:
-                    self.tables[tableName].printGraphViz(p3)
+            for table in self.tables.values():
+                table.printGraphViz(p2)
             for n, join in enumerate(self.joins):
                 join.printGraphViz(p2, color=colors[n%len(colors)])
 
@@ -347,9 +337,12 @@ if __name__ == "__main__":
     elif output == "DataUnit_relationships.dot":
         graph.removeOtherTables()
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-            graph.printGraphViz(Printer(stream=f), rhs=("SkyMap", "Tract", "Patch", "AbstractFilter"))
+            graph.printGraphViz(Printer(stream=f))
     elif output == "Other_relationships.dot":
         graph.removeDataUnitTables()
+        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
+            graph.printGraphViz(Printer(stream=f))
+    elif output == "All_relationships.dot":
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
             graph.printGraphViz(Printer(stream=f))
     else:

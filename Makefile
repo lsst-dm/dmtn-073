@@ -7,7 +7,7 @@ SCHEMA_URL = https://raw.githubusercontent.com/lsst/daf_butler/$(BRANCH)/config/
 TABLES = Dataset DatasetType DatasetTypeUnits DatasetTypeMetadata DatasetComposition DatasetCollection \
 	Execution Run Quantum
 COLUMNS = $(foreach tbl,$(TABLES),generated/$(tbl)_columns.tex)
-GRAPHS = generated/DataUnit_relationships.pdf generated/Other_relationships.pdf
+GRAPHS = generated/All_relationships.pdf
 
 $(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS)
 	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error
