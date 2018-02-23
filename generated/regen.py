@@ -62,9 +62,6 @@ class Printer:
     def format(self_, text, *args, **kwds):
         self_.direct(text.format(*args, **kwds))
 
-    def insert(self, text, *args):
-        self.direct(text % args)
-
     def escape(self, text):
         return text.translate(self.ESCAPE_TRANSLATION_DICT)
 
@@ -78,13 +75,20 @@ class Printer:
 SourceTargetPair = namedtuple("SourceTargetPair", ["source", "target"])
 
 
-class TableVertex:
-    __slots__ = ("name", "columns", "links")
+class Table:
+    __slots__ = ("name", "columns", "joins", "pKey")
 
-    def __init__(self, name, columns, links):
+    @classmethod
+    def fromTree(cls, name, tableTree):
+        columns = OrderedDict((c["name"], c) for c in tableTree['columns'])
+        pKey = tuple(c["name"] for c in columns.values() if c.get("primary_key", False))
+        return cls(name=name, columns=columns, pKey=pKey)
+
+    def __init__(self, name, columns, pKey):
         self.name = name
         self.columns = columns
-        self.links = links
+        self.joins = SourceTargetPair(source=[], target=[])
+        self.pKey = pKey
 
     def __eq__(self, other):
         return self.name == other.name
@@ -101,13 +105,7 @@ class TableVertex:
     def __repr__(self):
         return "TableVertex(name={self.name}, columns={self.columns})".format(self=self)
 
-    def writeAll(self):
-        with open(os.path.join(GENERATED_PATH, self.name + "_columns.tex"), 'w') as f:
-            self.printColumns(Printer(stream=f))
-        with open(os.path.join(GENERATED_PATH, self.name + "_relationships.dot"), 'w') as f:
-            self.printRelationships(Printer(stream=f))
-
-    def printColumns(self, printer, doForeignKeys=False):
+    def printColumns(self, printer):
         with printer.block(begin=r"\begin{tabular}{| l | l | l | p{0.5\textwidth} |}",
                            end=r"\end{tabular}") as p:
             p.direct(r"\hline")
@@ -128,53 +126,8 @@ class TableVertex:
                     p.direct(line)
                 p.direct(r'    \\')
                 p.direct(r'\hline')
-            if doForeignKeys and self.links.source:
-                for link in self.links.source:
-                    p.insert(r'  \multicolumn{4}{|l|}{%s} \\', p.escape(link.sql))
-                p.direct(r'\hline')
 
-    def printRelationships(self, printer):
-        # Make a dict of {<table>: <list-of-columns>} for any tables related
-        # to the focus table, and containing just the columns that participate
-        # in those relationships.
-        related = OrderedDict()
-        for edge in self.links.source:
-            assert edge.source.table is self
-            related.setdefault(edge.target.table, set()).update(edge.target.columns)
-        for edge in self.links.target:
-            assert edge.target.table is self
-            related.setdefault(edge.source.table, set()).update(edge.source.columns)
-        # We'll now turn the dict into a list of tuples so we can slice it;
-        # even entries will go on the left and odd on the right, with the
-        # node for self in the middle (those layout/rank hints make the layout
-        # graphviz produces much better).
-        related = list(related.items())
-        even = related[::2]
-        odd = related[1::2]
-
-        colors = ["forestgreen", "steelblue", "firebrick",
-                  "purple", "saddlebrown",
-                  "limegreen", "navyblue", "crimson",]
-
-        printer.format('digraph {name}_relationships', name=self.name)
-        with printer.block(begin='{', end='}') as p2:
-            p2.direct('node [shape=plaintext, fontname=helvetica, fontsize=10]')
-            p2.direct('rankdir=LR')
-            with p2.block(begin="{", end="}") as p3:
-                p3.direct('rank=min;')
-                for table, columns in even:
-                    table.printGraphVizVertex(p3, columns=columns)
-            with p2.block(begin="{", end="}") as p3:
-                p3.direct('rank=same;')
-                self.printGraphVizVertex(p3)
-            with p2.block(begin="{", end="}") as p3:
-                p3.direct('rank=max;')
-                for table, columns in odd:
-                    table.printGraphVizVertex(p3, columns=columns)
-            for n, link in enumerate(itertools.chain(self.links.source, self.links.target)):
-                link.printGraphVizEdge(p2, color=colors[n%len(colors)])
-
-    def printGraphVizVertex(self, printer, columns=None):
+    def printGraphViz(self, printer, columns=None):
         printer.direct(self.name)
         with printer.block(begin='[label=<', end='>];') as p2:
             with p2.block(begin='<table border="0" cellborder="1" cellpadding="3" cellspacing="0">',
@@ -192,18 +145,22 @@ class TableVertex:
                     p3.direct('<tr><td>...</td></tr>')
 
 
-class LinkPort(namedtuple("LinkPort", ["table", "columns", "many"])):
+class Port(namedtuple("Port", ["table", "columns", "many"])):
     __slots__ = ()
 
     def __str__(self):
         return self.table.name
 
     def __repr__(self):
-        return "LinkPort(name={self.table.name}, columns={self.columns})".format(self=self)
+        return "Port(name={self.table.name}, columns={self.columns})".format(self=self)
+
+    @staticmethod
+    def ensureList(tree):
+        return list(tree) if isinstance(tree, list) else [tree]
 
     @classmethod
-    def fromForeignKeySource(cls, fKeyNode, sourceTable):
-        columns = fKeyNode['src'] if isinstance(fKeyNode['src'], list) else [fKeyNode['src']]
+    def fromTreeSource(cls, fKeyTree, sourceTable):
+        columns = cls.ensureList(fKeyTree['src'])
         pKeys = set(column['name'] for column in sourceTable.columns.values()
                     if column.get("primary_key", False))
         # This is a one-to-one join iff the foreign key columns include all
@@ -216,21 +173,16 @@ class LinkPort(namedtuple("LinkPort", ["table", "columns", "many"])):
         )
 
     @classmethod
-    def fromForeignKeyTarget(cls, fKeyNode, vertices):
+    def fromTreeTarget(cls, fKeyTree, allTables):
         columns = []
         tables = set()
-        if isinstance(fKeyNode['tgt'], list):
-            for t in fKeyNode['tgt']:
-                table, column = t.split(".")
-                columns.append(column)
-                tables.add(table)
-        else:
-            table, column = fKeyNode['tgt'].split(".")
+        for t in cls.ensureList(fKeyTree['tgt']):
+            table, column = t.split(".")
             columns.append(column)
             tables.add(table)
-        assert len(tables) == 1, str(fKeyNode)
+        assert len(tables) == 1, str(fKeyTree)
         return cls(
-            table=vertices[tables.pop()],
+            table=allTables[tables.pop()],
             columns=columns,
             many=False
         )
@@ -241,120 +193,164 @@ class LinkPort(namedtuple("LinkPort", ["table", "columns", "many"])):
         return "crowtee" if self.many else "nonetee"
 
 
-class LinkEdge(SourceTargetPair):
+class Join(SourceTargetPair):
     __slots__ = ()
 
     @classmethod
-    def fromForeignKey(cls, fKeyNode, sourceTable, vertices):
+    def fromTree(cls, fKeyTree, sourceTable, allTables):
         result = cls(
-            source=LinkPort.fromForeignKeySource(fKeyNode, sourceTable=sourceTable),
-            target=LinkPort.fromForeignKeyTarget(fKeyNode, vertices=vertices),
+            source=Port.fromTreeSource(fKeyTree, sourceTable=sourceTable),
+            target=Port.fromTreeTarget(fKeyTree, allTables=allTables),
         )
-        result.source.table.links.source.append(result)
-        result.target.table.links.target.append(result)
+        result.source.table.joins.source.append(result)
+        result.target.table.joins.target.append(result)
         return result
 
-    @property
-    def sql(self):
-        return "FOREIGN KEY ({srcColumns}) REFERENCES {targetTable} ({targetColumns})".format(
-            targetTable=self.target.table.name,
-            sourceColumns=", ".join(self.source.columns),
-            targetColumns=", ".join(self.target.columns),
-        )
-
-    def printGraphVizEdge(self, printer, color=None):
+    def printGraphViz(self, printer, color=None):
         if color is not None:
-            color = 'color="{}"'.format(color)
+            color = 'color={}'.format(color)
         else:
             color = ""
         template = (
-            "{self.source.table.name}:{source} -> {self.target.table.name}:{target} "
-            "[arrowtail={self.source.arrow} arrowhead={self.target.arrow} dir=both {color}]"
+            "{self.source.table.name}:{sourceCol} -> {self.target.table.name}:{targetCol} "
+            "[arrowtail={self.source.arrow} arrowhead={self.target.arrow} {color}]"
         )
-        for source, target in zip(self.source.columns, self.target.columns):
-            printer.format(template, self=self, source=source, target=target, color=color)
+        for sourceCol, targetCol in zip(self.source.columns, self.target.columns):
+            printer.format(template, color=color, self=self, sourceCol=sourceCol, targetCol=targetCol)
 
 
 class SchemaGraph:
 
-    @classmethod
-    def fromTree(cls, tree):
-        vertices = OrderedDict()
-        # Add all tables (vertices)...
-        for name, node in tree["registry"]["schema"]["tables"].items():
-            vertices[name] = TableVertex(name=name,
-                                         columns=OrderedDict((c['name'], c) for c in node['columns']),
-                                         links=SourceTargetPair(source=[], target=[]))
-        # ...before adding any links (edges), since those need the table instances to exist.
-        edges = []
-        for name, node in tree["registry"]["schema"]["tables"].items():
-            for fKeyNode in node.get("foreignKeys", ()):
-                edges.append(LinkEdge.fromForeignKey(fKeyNode, sourceTable=vertices[name],
-                                                     vertices=vertices))
-        return cls(vertices=vertices, edges=edges)
+    def __init__(self):
+        with open(os.path.join(GENERATED_PATH, "schema.yaml"), 'r') as f:
+            tree = yaml.safe_load(f)["registry"]["schema"]
+        # Add standard (non-DataUnit) tables.
+        self.tables = OrderedDict()
+        for tableName, tableTree in tree["tables"].items():
+            self.tables[tableName] = Table.fromTree(tableName, tableTree)
+        # Add standard (non-DataUnit) joins from foreignKey entries.
+        self.joins = []
+        for tableName, tableTree in tree["tables"].items():
+            for fKeyTree in tableTree.get("foreignKeys", ()):
+                self.joins.append(Join.fromTree(fKeyTree, sourceTable=self.tables[tableName],
+                                                allTables=self.tables))
+        # Process DataUnits recursively, so we can build up their joins to Dataset
+        # and sort them topologically.
+        todo = tree['dataUnits']
+        self.units = OrderedDict()
 
-    def __init__(self, vertices, edges):
-        self.vertices = vertices
-        self.edges = edges
+        def recurse(unitName, unitTree):
+            if unitTree is None:
+                return
+            unitTree['needed'] = set()
 
+            deps = unitTree.get("dependencies", {})
+            for req in deps.get("required", ()):
+                recurse(req, todo.pop(req, None))
+                unitTree['needed'] |= self.units[req]['needed']
+            for opt in deps.get("optional", ()):
+                recurse(opt, todo.pop(opt, None))
 
-def preprocessDataUnits(tree):
-    dataset = tree['registry']['schema']['tables']['Dataset']
-    done = OrderedDict()
-    todo = tree['registry']['schema']['dataUnits']
+            unitTree['needed'] |= set(link['name'] for link in unitTree['link'])
+            self.units[unitName] = unitTree
 
-    # Recurse to sort by dependencies and get recurvive "needed" links
-    # for Dataset's foreign key constraints.
-    def recurse(name, node):
-        if node is None:
-            return
-        node['needed'] = []
+        while todo:
+            recurse(*todo.popitem())
 
-        deps = node.get("dependencies", {})
-        for req in deps.get("required", ()):
-            recurse(req, todo.pop(req, None))
-            node['needed'].extend(done[req]['needed'])
-        for opt in deps.get("optional", ()):
-            recurse(opt, todo.pop(opt, None))
+        # Walk through DataUnits, adding to self.tables, self.joins, and the
+        # the Dataset table's columns.
+        datasetTable = self.tables["Dataset"]
+        for unitName, unitTree in self.units.items():
+            if 'tables' in unitTree:
+                try:
+                    tableName, = unitTree['tables'].keys()
+                except ValueError:
+                    raise ValueError("DataUnits may only have one table.")
+                tableTree = unitTree['tables'][tableName]
+                thisTable = Table.fromTree(tableName, tableTree)
+                self.tables[tableName] = thisTable
+                joinColumns = [columnName for columnName in unitTree['needed']]
+                self.joins.append(
+                    Join(target=Port(table=thisTable, columns=joinColumns, many=False),
+                         source=Port(table=datasetTable, columns=list(joinColumns), many=True))
+                )
+                for fKeyTree in tableTree.get("foreignKeys", ()):
+                    self.joins.append(Join.fromTree(fKeyTree, sourceTable=thisTable, allTables=self.tables))
+            for link in unitTree['link']:
+                datasetTable.columns[link['name']] = {
+                    'name': link['name'],
+                    'type': link['type'],
+                    'doc': 'DataUnit link; see %s.' % unitName,
+                }
 
-        node['needed'].extend(node['link'])
-        done[name] = node
+    def removeTables(self, toRemove):
+        """Remove the given tables from the graph (including all joins involving them)."""
+        for tableName in toRemove:
+            del self.tables[tableName]
 
-    while todo:
-        recurse(*todo.popitem())
+        def filterJoins(joins):
+            return [join for join in joins
+                    if join.source.table.name not in toRemove and join.target.table.name not in toRemove]
 
-    for name, node in done.items():
-        if 'tables' in node:
-            foreignKey = {
-                'src': [],
-                'tgt': []
-            }
-            try:
-                table, = node['tables'].keys()
-            except ValueError:
-                raise ValueError("DataUnits may only have one table.")
-            for link in node['needed']:
-                if link['name'] not in foreignKey['src']:
-                    foreignKey['src'].append(link['name'])
-                    foreignKey['tgt'].append("%s.%s" % (table, link['name']))
-            dataset['foreignKeys'].append(foreignKey)
-            # Add DataUnit table to the main list of tables
-            tree['registry']['schema']['tables'][table] = node['tables'][table]
-        for link in node['link']:
-            dataset['columns'].append({
-                'name': link['name'],
-                'type': link['type'],
-                'doc': 'DataUnit link; see %s.' % name,
-            })
+        for table in self.tables.values():
+            table.joins.source[:] = filterJoins(table.joins.source)
+            table.joins.target[:] = filterJoins(table.joins.target)
+        self.joins[:] = filterJoins(self.joins)
 
+    def removeDataUnitTables(self):
+        """Remove DataUnit tables from the graph."""
+        toRemove = set()
+        for unitTree in self.units.values():
+            for tableName in unitTree.get('tables', {}).keys():
+                toRemove.add(tableName)
+        self.removeTables(toRemove)
 
-def main(table):
-    with open(os.path.join(GENERATED_PATH, "schema.yaml"), 'r') as f:
-        tree = yaml.safe_load(f)
-    preprocessDataUnits(tree)
-    graph = SchemaGraph.fromTree(tree)
-    graph.vertices[table].writeAll()
+    def removeOtherTables(self):
+        """Remove all tables besides Dataset and the DataUnit tables."""
+        toRemove = set(self.tables.keys())
+        toRemove.remove("Dataset")
+        for unitTree in self.units.values():
+            for tableName in unitTree.get('tables', {}).keys():
+                toRemove.remove(tableName)
+        self.removeTables(toRemove)
+
+    def printGraphViz(self, printer, lhs=(), rhs=()):
+        colors = ["forestgreen", "steelblue", "firebrick", "purple", "saddlebrown",
+                  "limegreen", "navyblue", "crimson",]
+        printer.direct('digraph relationships')
+        with printer.block(begin='{', end='}') as p2:
+            p2.direct('node [shape=plaintext fontname=helvetica fontsize=10]')
+            p2.direct('edge [dir=both]')
+            p2.direct('rankdir=LR')
+            p2.direct('concentrate=true')
+            with p2.block(begin='{', end='}') as p3:
+                p3.direct("rank=min")
+                for tableName in rhs:
+                    self.tables[tableName].printGraphViz(p3)
+            for tableName, table in self.tables.items():
+                if tableName not in rhs and tableName not in lhs:
+                    table.printGraphViz(p3)
+            with p2.block(begin='{', end='}') as p3:
+                p3.direct("rank=max")
+                for tableName in lhs:
+                    self.tables[tableName].printGraphViz(p3)
+            for n, join in enumerate(self.joins):
+                join.printGraphViz(p2, color=colors[n%len(colors)])
 
 if __name__ == "__main__":
-    _, table = os.path.split(sys.argv[1])
-    main(table)
+    graph = SchemaGraph()
+    _, output = os.path.split(sys.argv[1])
+    if output.endswith("_columns.tex"):
+        table, _ = output.split("_")
+        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
+            graph.tables[table].printColumns(Printer(stream=f))
+    elif output == "DataUnit_relationships.dot":
+        graph.removeOtherTables()
+        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
+            graph.printGraphViz(Printer(stream=f), rhs=("SkyMap", "Tract", "Patch", "AbstractFilter"))
+    elif output == "Other_relationships.dot":
+        graph.removeDataUnitTables()
+        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
+            graph.printGraphViz(Printer(stream=f))
+    else:
+        raise ValueError("Unrecognized output file")

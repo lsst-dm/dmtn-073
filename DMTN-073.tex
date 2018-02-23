@@ -56,19 +56,21 @@ The tables and figures in this document (including the descriptions of table col
 
 All relationship diagrams on this document focus on a single table; columns in other tables may not be shown if they do not participate in a relationship to the focus table, and relationships between non-focus tables are not shown.  Colors are for disambiguation only.
 
+\relgraph[width=0.8\textwidth]{DataUnit}
+\relgraph[height=0.8\textheight]{Other}
+
 \section{Datasets}
 \label{sec:datasets}
 
 The central table of the registry database is \tblref{Dataset}, which contains one record for every dataset managed by the registry.
 
 \coltable{Dataset}
-\relgraph[height=0.8\textheight]{Dataset}
+
 
 \subsection{DatasetTypes and StorageClasses}
 \label{sec:datasettypes-and-storageclasses}
 
 \coltable{DatasetType}
-\relgraph{DatasetType}
 
 \coltable{DatasetTypeUnits}
 \coltable{DatasetTypeMetadata}
@@ -106,19 +108,16 @@ The central table of the registry database is \tblref{Dataset}, which contains o
 \label{sec:excution}
 
 \coltable{Execution}
-\relgraph{Execution}
 
 \subsection{Run}
 \label{sec:run}
 
 \coltable{Run}
-\relgraph{Run}
 
 \subsection{Quantum}
 \label{sec:quantum}
 
 \coltable{Quantum}
-\relgraph{Quantum}
 
 \section{Additional Metadata Tables}
 \label{sec:additional-metadata-tables}
