@@ -117,7 +117,19 @@ Datasets may be composite: they may contain discrete named child Datasets that c
 
 The structure of composite dataset is fully defined by its StorageClass; all Datasets with a particular StorageClass will have the same set of component nnames and component StorageClasses (though some StorageClasses may permit a component to be None/null).
 
-The representation of composite datasets in the registry schema is still TDB.
+When a DatasetType is registered with a StorageClass that has components, DatasetTypes for those components are automatically created as well.
+The entries in DatasetTypeUnits for these child DatasetTypes will be the same as those for the parent, and the names for the children will have the form \texttt{\{parent-dataset-name\}.\{component-name\}}.
+
+\coltable{DatasetComposition}.
+
+Both parent/composite datasets and child/component Datasets always have entries in the Dataset table, and these are related by the entries of the \tblref{DatasetComposition} table.
+
+Some Datasets are \emph{virtual composites}, which means that they are not
+directly stored in any Datastore.
+These are instead assembled entirely from their components using an ``Assembler'' function stored in the Dataset table's \texttt{assembler} field.
+Note that virtual composites are still ``more than the sum of their parts'' from a Registry perspective.
+They have their own entries in the Dataset table, a number of entries in the \tblref[DatasetComposition] table, and potentially entries one or more \hyperref[sec:metadata]{metadata} tables.
+This means that they must be explicitly created (though unlike other datasets, this can be done without a Datastore) before they can be retreived.
 
 \section{DataUnits}
 \label{sec:dataunits}
