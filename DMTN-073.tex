@@ -128,7 +128,7 @@ Some Datasets are \emph{virtual composites}, which means that they are not
 directly stored in any Datastore.
 These are instead assembled entirely from their components using an ``Assembler'' function stored in the Dataset table's \texttt{assembler} field.
 Note that virtual composites are still ``more than the sum of their parts'' from a Registry perspective.
-They have their own entries in the Dataset table, a number of entries in the \tblref[DatasetComposition] table, and potentially entries one or more \hyperref[sec:metadata]{metadata} tables.
+They have their own entries in the Dataset table, a number of entries in the \tblref{DatasetComposition} table, and potentially entries one or more \hyperref[sec:metadata]{metadata} tables.
 This means that they must be explicitly created (though unlike other datasets, this can be done without a Datastore) before they can be retreived.
 
 \section{DataUnits}
@@ -203,7 +203,7 @@ In general, Datastores must also record private information about each Dataset (
 These entries may be stored in additional tables in the same database that holds the Registry, but may also be stored elsewhere.
 
 \section{Additional Metadata Tables}
-\label{sec:additional-metadata-tables}
+\label{sec:metadata}
 
 \subsection{StorageClass Metadata}
 \label{sec:storageclass-metadata}
