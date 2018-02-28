@@ -5,7 +5,7 @@ BRANCH = tickets/DM-12620
 SCHEMA_URL = https://raw.githubusercontent.com/lsst/daf_butler/$(BRANCH)/config/registry/default_schema.yaml
 
 TABLES = Dataset DatasetType DatasetTypeUnits DatasetTypeMetadata DatasetComposition DatasetCollection \
-	Execution Run Quantum
+	Execution Run Quantum DatasetStorage
 COLUMNS = $(foreach tbl,$(TABLES),generated/$(tbl)_columns.tex)
 GRAPHS = generated/All_relationships.pdf
 

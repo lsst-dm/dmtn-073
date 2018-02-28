@@ -194,6 +194,14 @@ The full set of Quantum columns can be found in Table~\ref{tbl:Quantum}.
 \section{Datastore Information}
 \label{sec:datastore-information}
 
+The \tblref{DatasetStorage} table provides public information about how Datasets are stored in particular Datastores.  This includes whether they are present at all, which is indicated by the existence of a record with a particular Dataset/Datastore combination.
+
+\coltable{DatasetStorage}
+
+This table is unique among Registry tables in that it is updated directly by Datastore, rather than via Butler (whether this goes through a Registry client or some other common interface to the database is TBD).
+In general, Datastores must also record private information about each Dataset (e.g. filenames, read formatters).
+These entries may be stored in additional tables in the same database that holds the Registry, but may also be stored elsewhere.
+
 \section{Additional Metadata Tables}
 \label{sec:additional-metadata-tables}
 
