@@ -221,7 +221,7 @@ class SchemaGraph:
 
     def __init__(self):
         with open(os.path.join(GENERATED_PATH, "schema.yaml"), 'r') as f:
-            tree = yaml.safe_load(f)["registry"]["schema"]
+            tree = yaml.safe_load(f)
         # Add standard (non-DataUnit) tables.
         self.tables = OrderedDict()
         for tableName, tableTree in tree["tables"].items():
