@@ -23,6 +23,9 @@
     \end{figure}
 }
 
+\newcommand{\unitinc}[1]{\include{generated/#1_unit}}
+
+
 \title{The Gen3 Butler Registry Schema}
 
 \author{Jim Bosch}
@@ -137,11 +140,26 @@ This means that they must be explicitly created (though unlike other datasets, t
 \subsection{Fundamental DataUnits}
 \label{sec:fundamental-dataunits}
 
+\unitinc{AbstractFilter}
+\unitinc{Label}
+\unitinc{SkyPix}
+
 \subsection{Camera DataUnits}
 \label{sec:camera-dataunits}
 
+\unitinc{Camera}
+\unitinc{PhysicalFilter}
+\unitinc{Sensor}
+\unitinc{Exposure}
+\unitinc{Visit}
+\unitinc{ExposureRange}
+
 \subsection{SkyMap DataUnits}
 \label{sec:skymap-dataunits}
+
+\unitinc{SkyMap}
+\unitinc{Tract}
+\unitinc{Patch}
 
 \subsection{Joins Between DataUnits}
 \label{sec:joins-between-dataunits}

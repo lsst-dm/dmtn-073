@@ -56,7 +56,7 @@ class Printer:
         self.stream = stream
         self.indent = indent
 
-    def direct(self, text):
+    def direct(self, text=""):
         print(self.indent, text, sep="", file=self.stream)
 
     def format(self_, text, *args, **kwds):
@@ -327,6 +327,50 @@ class SchemaGraph:
             for n, join in enumerate(self.joins):
                 join.printGraphViz(p2, color=colors[n%len(colors)])
 
+    def printDataUnit(self, name, printer):
+        unitTree = self.units[name]
+        printer.format(r"\subsubsection{{{name}}}", name=name)
+        printer.format(r"\label{{unit:{name}}}", name=name)
+        printer.direct()
+        wrapper = TextWrapper(width=70, initial_indent=printer.indent, subsequent_indent=printer.indent)
+        for line in wrapper.wrap(printer.escape(unitTree['doc'])):
+            printer.direct(line)
+        printer.direct()
+        deps = unitTree.get("dependencies", {})
+        req = deps.get("required", None)
+        if req is None:
+            printer.direct(r"\textbf{Dependencies:} none")
+        elif len(req) == 1:
+            printer.format(r"\textbf{{Dependencies:}} {dep}", dep=printer.escape(req[0]))
+        else:
+            with printer.block(begin=r"\begin{itemize}", end=r"\end{itemize}") as p:
+                for dep in req:
+                    p.format(r"\item {dep}", dep=dep)
+        printer.direct()
+        values = unitTree["link"]
+        printer.direct(r"\textbf{Value Fields:}")
+        with printer.block(begin=r"\begin{itemize}", end=r"\end{itemize}") as p:
+            for v in values:
+                p.format(r"\item \textbf{{{name} ({type}):}}", name=p.escape(v['name']), type=p.escape(v['type']))
+                doc = v.get("doc", None)
+                if doc is None:
+                    doc = self.tables[name].columns[v['name']]['doc']
+                if doc is not None:
+                    wrapper = TextWrapper(width=70, initial_indent=p.indent + "  ",
+                                          subsequent_indent=p.indent + "  ")
+                    for line in wrapper.wrap(p.escape(doc)):
+                        p.direct(line)
+        printer.direct()
+        if 'tables' in unitTree:
+            printer.format(r"\textbf{{Table:}} \hyperref[tbl:{name}]{{{name}}}", name=name)
+            with printer.block(begin=r"\begin{table}[!htb]", end=r"\end{table}") as p:
+                with p.block(begin=r"{\footnotesize", end=r"}") as p2:
+                    self.tables[name].printColumns(p2)
+                p.format(r"\caption{{{name} Columns}}", name=name)
+                p.format(r"\label{{tbl:{name}}}", name=name)
+        else:
+            printer.direct(r"\textbf{Table:} none")
+
 if __name__ == "__main__":
     graph = SchemaGraph()
     _, output = os.path.split(sys.argv[1])
@@ -334,6 +378,10 @@ if __name__ == "__main__":
         table, _ = output.split("_")
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
             graph.tables[table].printColumns(Printer(stream=f))
+    elif output.endswith("_unit.tex"):
+        unit, _ = output.split("_")
+        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
+            graph.printDataUnit(unit, Printer(stream=f))
     elif output == "DataUnit_relationships.dot":
         graph.removeOtherTables()
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
