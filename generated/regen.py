@@ -295,22 +295,18 @@ class SchemaGraph:
             table.joins.target[:] = filterJoins(table.joins.target)
         self.joins[:] = filterJoins(self.joins)
 
-    def removeDataUnitTables(self):
-        """Remove DataUnit tables from the graph."""
-        toRemove = set()
+    def getDataUnitTables(self):
+        r = set()
         for unitTree in self.units.values():
             for tableName in unitTree.get('tables', {}).keys():
-                toRemove.add(tableName)
-        self.removeTables(toRemove)
+                r.add(tableName)
+        return r
 
-    def removeOtherTables(self):
-        """Remove all tables besides Dataset and the DataUnit tables."""
-        toRemove = set(self.tables.keys())
-        toRemove.remove("Dataset")
-        for unitTree in self.units.values():
-            for tableName in unitTree.get('tables', {}).keys():
-                toRemove.remove(tableName)
-        self.removeTables(toRemove)
+    def getProvenanceTables(self):
+        return set(["Quantum", "Run", "Execution", "DatasetConsumers"])
+
+    def getAllTables(self):
+        return set(self.tables.keys())
 
     def printGraphViz(self, printer):
         colors = ["lawngreen", "indigo", "magenta1", "orangered",
@@ -372,6 +368,7 @@ class SchemaGraph:
             printer.direct(r"\textbf{Table:} none")
 
 if __name__ == "__main__":
+    provenanceTables = set(["Quantum", "Run", "Execution", "DatasetConsumers"])
     graph = SchemaGraph()
     _, output = os.path.split(sys.argv[1])
     if output.endswith("_columns.tex"):
@@ -383,11 +380,19 @@ if __name__ == "__main__":
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
             graph.printDataUnit(unit, Printer(stream=f))
     elif output == "DataUnit_relationships.dot":
-        graph.removeOtherTables()
+        graph.removeTables(graph.getAllTables() - graph.getDataUnitTables())
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
             graph.printGraphViz(Printer(stream=f))
-    elif output == "Other_relationships.dot":
-        graph.removeDataUnitTables()
+    elif output == "Provenance_relationships.dot":
+        toRemove = graph.getAllTables()
+        toRemove -= graph.getProvenanceTables()
+        #toRemove.discard("Dataset")
+        graph.removeTables(toRemove)
+        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
+            graph.printGraphViz(Printer(stream=f))
+    elif output == "Dataset_relationships.dot":
+        graph.removeTables(graph.getDataUnitTables())
+        graph.removeTables(graph.getProvenanceTables())
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
             graph.printGraphViz(Printer(stream=f))
     elif output == "All_relationships.dot":
