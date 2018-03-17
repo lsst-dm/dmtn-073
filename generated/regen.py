@@ -258,28 +258,41 @@ class SchemaGraph:
         # Walk through DataUnits, adding to self.tables, self.joins, and the
         # the Dataset table's columns.
         datasetTable = self.tables["Dataset"]
+        extraTables = {}
         for unitName, unitTree in self.units.items():
-            if 'tables' in unitTree:
-                try:
-                    tableName, = unitTree['tables'].keys()
-                except ValueError:
-                    raise ValueError("DataUnits may only have one table.")
-                tableTree = unitTree['tables'][tableName]
-                thisTable = Table.fromTree(tableName, tableTree)
-                self.tables[tableName] = thisTable
-                joinColumns = [columnName for columnName in unitTree['needed']]
-                self.joins.append(
-                    Join(target=Port(table=thisTable, columns=joinColumns, many=False),
-                         source=Port(table=datasetTable, columns=list(joinColumns), many=True))
-                )
-                for fKeyTree in tableTree.get("foreignKeys", ()):
-                    self.joins.append(Join.fromTree(fKeyTree, sourceTable=thisTable, allTables=self.tables))
+            for tableName, tableTree in unitTree.get('tables', {}).items():
+                if tableName == unitName:
+                    thisTable = Table.fromTree(tableName, tableTree)
+                    self.tables[tableName] = thisTable
+                    joinColumns = [columnName for columnName in unitTree['needed']]
+                    self.joins.append(
+                        Join(target=Port(table=thisTable, columns=joinColumns,
+                                         many=False),
+                             source=Port(table=datasetTable,
+                                         columns=list(joinColumns), many=True))
+                    )
+                    for fKeyTree in tableTree.get("foreignKeys", ()):
+                        self.joins.append(
+                            Join.fromTree(fKeyTree, sourceTable=thisTable,
+                                          allTables=self.tables)
+                        )
+                else:
+                    extraTables[tableName] = tableTree
             for link in unitTree['link']:
                 datasetTable.columns[link['name']] = {
                     'name': link['name'],
                     'type': link['type'],
                     'doc': 'DataUnit link; see %s.' % unitName,
                 }
+
+        # Add extra tables found amongst the DataUnits.
+        for tableName, tableTree in extraTables.items():
+            self.tables[tableName] = Table.fromTree(tableName, tableTree)
+        # Add standard (non-DataUnit) joins from foreignKey entries.
+        for tableName, tableTree in extraTables.items():
+            for fKeyTree in tableTree.get("foreignKeys", ()):
+                self.joins.append(Join.fromTree(fKeyTree, sourceTable=self.tables[tableName],
+                                                allTables=self.tables))
 
     def removeTables(self, toRemove):
         """Remove the given tables from the graph (including all joins involving them)."""
