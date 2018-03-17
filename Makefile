@@ -9,7 +9,7 @@ TABLES = Dataset DatasetType DatasetTypeUnits DatasetTypeMetadata DatasetComposi
 COLUMNS = $(foreach tbl,$(TABLES),generated/$(tbl)_columns.tex)
 UNITS = AbstractFilter Label SkyPix Camera Sensor PhysicalFilter Exposure Visit ExposureRange SkyMap Tract Patch
 UNIT_INCS = $(foreach unit,$(UNITS),generated/$(unit)_unit.tex)
-GRAPHS = generated/All_relationships.pdf
+GRAPHS = generated/All_relationships.pdf DataUnitJoins.pdf
 
 $(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS) $(UNIT_INCS)
 	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error
@@ -27,6 +27,9 @@ generated/schema.yaml:
 	python generated/regen.py $@
 
 %_relationships.pdf: %_relationships.dot
+	dot -Tpdf $< > $@
+
+DataUnitJoins.pdf: DataUnitJoins.dot
 	dot -Tpdf $< > $@
 
 generated: $(COLUMNS) $(GRAPHS) $(UNIT_INCS)

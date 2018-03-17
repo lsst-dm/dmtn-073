@@ -6,5 +6,5 @@
 *.pdf
 *.toc
 *.yaml
-*.dot
+generated/*.dot
 generated/*.tex
