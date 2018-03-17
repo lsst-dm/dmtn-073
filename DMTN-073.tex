@@ -4,6 +4,7 @@
 \usepackage{graphicx}
 
 \newcommand{\tblref}[1]{\hyperref[tbl:#1]{#1}}
+\newcommand{\unitref}[1]{\hyperref[unit:#1]{#1}}
 
 \newcommand{\coltable}[1]{
     \begin{table}[!htb]
@@ -137,8 +138,19 @@ This means that they must be explicitly created (though unlike other datasets, t
 \section{DataUnits}
 \label{sec:dataunits}
 
+All of the concrete DataUnits described in this section play the role in how they relate to Datasets, but they can have very different representations in the SQL schema.
+
+All DataUnits have one or more \textbf{Value Fields}, which provide those links to the Dataset table.
+A DataUnit's own Value Fields are not necessarily sufficient to uniquely identify its instances, however; DataUnits can have \textbf{Dependencies}, which are other DataUnits whose Value Fields must \emph{also} be provided (recursively) for uniqueness.
+
+Not all DataUnits have tables.
+Those that do have a (typically) compound primary key that includes its Value Fields and those of its Dependencies (again, recursively).
+A DataUnit table can also have a foreign key constraint that is not a Dependency; for example, a \unitref{Visit} has a foreign key to \unitref{PhysicalFilter}, but the \unitref{PhysicalFilter} is not part of \unitref{Visit}'s compound primary key.
+
 \subsection{Fundamental DataUnits}
 \label{sec:fundamental-dataunits}
+
+Fundamental DataUnits are those that are not associated with a \unitref{Camera} or \unitref{SkyMap}.
 
 \unitinc{AbstractFilter}
 \unitinc{Label}
@@ -164,6 +176,8 @@ This means that they must be explicitly created (though unlike other datasets, t
 \subsection{Joins Between DataUnits}
 \label{sec:joins-between-dataunits}
 
+Many predefined DataUnit relationships are many-to-many, and hence are not captured in the descriptions of individual DataUnits above.
+Some of these relationships can be implemented as join tables or views, but others are just SQL expressions that can be used in a SELECT statement's JOIN clause.
 
 \section{Collections and Provenance}
 \label{sec:collections-and-provenance}
