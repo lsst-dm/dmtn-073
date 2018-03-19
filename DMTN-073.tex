@@ -73,10 +73,7 @@ The tables and figures in this document (including the descriptions of table col
 
 The Dataset contains a single record for every discrete unit of data managed by the Registry, and acts as a sort of hub for the rest of the schema: nearly all other tables join to it, either to label datasets (Section~\ref{sec:dataunits}), provide provenance information and define groups (Section~\ref{sec:collections-and-provenance}), or connect to the Datastores that actually store them (Section~\ref{sec:datastore-information}).
 
-Dataset uses a compound primary key consisting of two fields, \texttt{dataset\_id} and \texttt{registry\_id}.
-The former is auto-increment, and the latter is used to disambiguate different ``incrementers''; see Section~\ref{sec:cross-registry-auto-increment-keys} for information on this pattern.
-
-Finding a particular dataset (assuming one does not already have the primary key values or provenance information) typically requires three pieces of information:
+Finding a particular dataset (assuming one does not already have the primary key value or provenance information) typically requires three pieces of information:
 \begin{itemize}
     \item its \hyperref[sec:DatasetType]{DatasetType} (e.g. \texttt{src});
     \item one or more \hyperref[sec:collections]{Collections} to search;
