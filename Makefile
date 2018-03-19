@@ -5,11 +5,11 @@ BRANCH = tickets/DM-12620
 SCHEMA_URL = https://raw.githubusercontent.com/lsst/daf_butler/$(BRANCH)/config/registry/default_schema.yaml
 
 TABLES = Dataset DatasetType DatasetTypeUnits DatasetTypeMetadata DatasetComposition DatasetCollection \
-	Execution Run Quantum DatasetStorage
+	Execution Run Quantum DatasetStorage VisitSensorRegion
 COLUMNS = $(foreach tbl,$(TABLES),generated/$(tbl)_columns.tex)
 UNITS = AbstractFilter Label SkyPix Camera Sensor PhysicalFilter Exposure Visit ExposureRange SkyMap Tract Patch
 UNIT_INCS = $(foreach unit,$(UNITS),generated/$(unit)_unit.tex)
-GRAPHS = generated/All_relationships.pdf DataUnitJoins.pdf
+GRAPHS = generated/All_relationships.pdf DataUnitJoins.pdf DataUnitJoinsLegend.pdf
 
 $(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS) $(UNIT_INCS)
 	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error
@@ -30,6 +30,9 @@ generated/schema.yaml:
 	dot -Tpdf $< > $@
 
 DataUnitJoins.pdf: DataUnitJoins.dot
+	dot -Tpdf $< > $@
+
+DataUnitJoinsLegend.pdf: DataUnitJoinsLegend.dot
 	dot -Tpdf $< > $@
 
 generated: $(COLUMNS) $(GRAPHS) $(UNIT_INCS)

@@ -7,7 +7,7 @@
 \newcommand{\unitref}[1]{\hyperref[unit:#1]{#1}}
 
 \newcommand{\coltable}[1]{
-    \begin{table}[!htb]
+    \begin{table}[htb]
         {\footnotesize
         \include{generated/#1_columns}}
         \caption{#1 Columns}
@@ -135,9 +135,13 @@ This means that they must be explicitly created (though unlike other datasets, t
 \section{DataUnits}
 \label{sec:dataunits}
 
-All of the concrete DataUnits described in this section play the role in how they relate to Datasets, but they can have very different representations in the SQL schema.
+A DataUnit is a predefined discrete unit of data that can be used to label a Dataset, such as a \unitref{Visit} or \unitref{Tract}.
+Together, the set of DataUnits are the keys that may be used in data ID dicts, but DataUnits can also be associated with additional metadata fields and other DataUnits.
+These relationships and metadata fields are predefined and managed by the Registry, and are hence a major part of the common Registry schema described by this document.
 
-All DataUnits have one or more \textbf{Value Fields}, which provide those links to the Dataset table.
+All of the concrete DataUnits described in this section play the same role in how they relate to Datasets, but they can have very different representations in the SQL schema.
+
+All DataUnits have one or more \textbf{Value Fields}, which provide links to the Dataset table.
 A DataUnit's own Value Fields are not necessarily sufficient to uniquely identify its instances, however; DataUnits can have \textbf{Dependencies}, which are other DataUnits whose Value Fields must \emph{also} be provided (recursively) for uniqueness.
 
 Not all DataUnits have tables.
@@ -150,21 +154,33 @@ A DataUnit table can also have a foreign key constraint that is not a Dependency
 Fundamental DataUnits are those that are not associated with a \unitref{Camera} or \unitref{SkyMap}.
 
 \unitinc{AbstractFilter}
-\unitinc{Label}
 \unitinc{SkyPix}
+\unitinc{Label}
 
 \subsection{Camera DataUnits}
 \label{sec:camera-dataunits}
+
+Camera DataUnits are associated with a particular observatory and instrument, and are generally customized by a particular \texttt{obs} package.
+
+Some Camera DataUnits are populated when a Camera is first defined within a Registry (\unitref{Camera}, \unitref{PhysicalFilter}, \unitref{Sensor}), while others are created when observations are ingested (\unitref{Exposure}, \unitref{Visit}).
+
+\unitref{ExposureRange}s are unique among Camera DataUnits in being defined directly by the existence of one or more Datasets that use them.
+All other Camera DataUnits have their own tables that contain entries that are independent of any particular Dataset (and are typically each associated with many Datasets).
+
+Each combination of \unitref{Visit} and \unitref{Sensor} is also associated with an entry in another table, \tblref{VisitSensorRegion}, which holds the spatial region on the sky associated with each such combination.
 
 \unitinc{Camera}
 \unitinc{PhysicalFilter}
 \unitinc{Sensor}
 \unitinc{Exposure}
 \unitinc{Visit}
+\coltable{VisitSensorRegion}
 \unitinc{ExposureRange}
 
 \subsection{SkyMap DataUnits}
 \label{sec:skymap-dataunits}
+
+SkyMap DataUnits together define a two-level subdivision of the sky with overlaps, suitable for coaddition and coadd processing.
 
 \unitinc{SkyMap}
 \unitinc{Tract}
@@ -175,6 +191,17 @@ Fundamental DataUnits are those that are not associated with a \unitref{Camera} 
 
 Many predefined DataUnit relationships are many-to-many, and hence are not captured in the descriptions of individual DataUnits above.
 Some of these relationships can be implemented as join tables or views, but others are just SQL expressions that can be used in a SELECT statement's JOIN clause.
+
+The compelte set of conceptual DataUnit relationships is shown in Figure~\ref{rel:DataUnitJoins}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{DataUnitJoins}
+    \includegraphics[width=\textwidth]{DataUnitJoinsLegend}
+    \caption{DataUnit Conceptual Joins}
+    \label{rel:DataUnitJoins}
+\end{figure}
+
 
 \section{Collections and Provenance}
 \label{sec:collections-and-provenance}

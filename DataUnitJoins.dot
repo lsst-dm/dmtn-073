@@ -40,8 +40,8 @@ digraph relationships {
     MultiCameraExposureJoin -> Camera [arrowtail=crowtee arrowhead=nonetee]
     ExposureRange -> Camera[arrowtail=none]
     ExposureRange -> Exposure [arrowhead=crowtee arrowtail=crowtee constraint=false]
-    VisitSensorRegion -> Visit [arrowtail=none]
-    VisitSensorRegion -> Sensor [arrowtail=none]
+    VisitSensorRegion -> Visit [arrowtail=crowtee arrowhead=nonetee]
+    VisitSensorRegion -> Sensor [arrowtail=crowtee arrowhead=nonetee]
     PhysicalFilter -> Camera [arrowtail=none]
     AbstractFilter -> PhysicalFilter [arrowhead=nonetee arrowtail=crowtee]
     PhysicalFilter -> Visit [arrowhead=crowtee arrowtail=nonetee]
@@ -59,15 +59,5 @@ digraph relationships {
         VisitSensorRegion -> Patch
         VisitSensorRegion -> Tract
     }
-    subgraph cluster_legend {
-        color=grey
-        {
-            "Fundamental DataUnit" [shape=none color=firebrick4 fontcolor=firebrick4]
-            "Camera DataUnit" [shape=none color=dodgerblue4 fontcolor=dodgerblue4]
-            "SkyMap DataUnit" [shape=none color=seagreen4 fontcolor=seagreen4]
-            "Table" [color=grey40 fontcolor=grey40]
-            "Non-Table" [style=rounded color=grey40 fontcolor=grey40]
-        }
-    }
-    "Non-Table" -> Label [style=invisible arrowhead=none arrowtail=none]
+
 }
