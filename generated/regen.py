@@ -25,7 +25,7 @@
 import yaml
 import os
 import sys
-import itertools
+import re
 from contextlib import contextmanager
 
 from collections import OrderedDict, namedtuple
@@ -52,9 +52,10 @@ class Printer:
         )
     )
 
-    def __init__(self, stream, indent=""):
+    def __init__(self, stream, indent="", regexes=None):
         self.stream = stream
         self.indent = indent
+        self.regexes = regexes if regexes is not None else dict()
 
     def direct(self, text=""):
         print(self.indent, text, sep="", file=self.stream)
@@ -65,10 +66,16 @@ class Printer:
     def escape(self, text):
         return text.translate(self.ESCAPE_TRANSLATION_DICT)
 
+    def substitute(self, text):
+        for regex, repl in self.regexes.items():
+            text = regex.sub(repl, text)
+        return text
+
     @contextmanager
     def block(self, begin, end, indent="  "):
         self.direct(begin)
-        yield Printer(stream=self.stream, indent=self.indent+indent)
+        yield Printer(stream=self.stream, indent=self.indent+indent,
+                      regexes=self.regexes)
         self.direct(end)
 
 
@@ -122,7 +129,7 @@ class Table:
                     attributes = ""
                 p.format(template, name=p.escape(column['name']), type=p.escape(column['type']),
                          attributes=attributes)
-                for line in wrapper.wrap(p.escape(column['doc'])):
+                for line in wrapper.wrap(p.substitute(p.escape(column['doc']))):
                     p.direct(line)
                 p.direct(r'    \\')
                 p.direct(r'\hline')
@@ -328,6 +335,16 @@ class SchemaGraph:
     def getAllTables(self):
         return set(self.tables.keys())
 
+    def makeRegExes(self):
+        units = self.units.keys()
+        tables = self.tables.keys() - units
+        template = r"(?<!\w)({})(?!\w)"
+        return {
+            re.compile(template.format("|".join(units))): r"\\unitref{\1}",
+            re.compile(template.format("|".join(tables))): r"\\tblref{\1}",
+            re.compile(r'"(\w+)"'): r"``\1''"
+        }
+
     def printGraphViz(self, printer):
         colors = ["lawngreen", "indigo", "magenta1", "orangered",
                   "lightskyblue3", "lightcoral", "mediumpurple", "forestgreen",
@@ -349,7 +366,7 @@ class SchemaGraph:
         printer.format(r"\label{{unit:{name}}}", name=name)
         printer.direct()
         wrapper = TextWrapper(width=70, initial_indent=printer.indent, subsequent_indent=printer.indent)
-        for line in wrapper.wrap(printer.escape(unitTree['doc'])):
+        for line in wrapper.wrap(printer.substitute(printer.escape(unitTree['doc']))):
             printer.direct(line)
         printer.direct()
         deps = unitTree.get("dependencies", {})
@@ -393,7 +410,7 @@ class SchemaGraph:
         printer.format(r"\label{{join:{name}}}", name=name)
         printer.direct()
         wrapper = TextWrapper(width=70, initial_indent=printer.indent, subsequent_indent=printer.indent)
-        for line in wrapper.wrap(printer.escape(tree['doc'])):
+        for line in wrapper.wrap(printer.substitute(printer.escape(tree['doc']))):
             printer.direct(line)
         printer.direct()
         if 'tables' in tree:
@@ -419,7 +436,7 @@ if __name__ == "__main__":
     graph = SchemaGraph()
     _, output = os.path.split(sys.argv[1])
     with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-        printer = Printer(stream=f)
+        printer = Printer(stream=f, regexes=graph.makeRegExes())
         if output.endswith("_columns.tex"):
             table, _ = output.split("_")
             graph.tables[table].printColumns(printer)

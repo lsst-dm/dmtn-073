@@ -8,16 +8,18 @@
 
 \newcommand{\coltable}[1]{
     \begin{table}[htb]
-        {\footnotesize
-        \include{generated/#1_columns}}
+        {
+            \footnotesize
+            \input{generated/#1_columns}
+        }
         \caption{#1 Columns}
         \label{tbl:#1}
     \end{table}
 }
 
-\newcommand{\unitinc}[1]{\include{generated/#1_unit}}
+\newcommand{\unitinc}[1]{\input{generated/#1_unit}}
 
-\newcommand{\joininc}[1]{\include{generated/#1_join}}
+\newcommand{\joininc}[1]{\input{generated/#1_join}}
 
 
 \title{The Gen3 Butler Registry Schema}
@@ -149,9 +151,9 @@ A DataUnit table can also have a foreign key constraint that is not a Dependency
 
 Fundamental DataUnits are those that are not associated with a \unitref{Camera} or \unitref{SkyMap}.
 
+\unitinc{Label}
 \unitinc{AbstractFilter}
 \unitinc{SkyPix}
-\unitinc{Label}
 
 \subsection{Camera DataUnits}
 \label{sec:camera-dataunits}
