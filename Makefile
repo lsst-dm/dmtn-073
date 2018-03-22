@@ -7,11 +7,15 @@ SCHEMA_URL = https://raw.githubusercontent.com/lsst/daf_butler/$(BRANCH)/config/
 TABLES = Dataset DatasetType DatasetTypeUnits DatasetTypeMetadata DatasetComposition DatasetCollection \
 	Execution Run Quantum DatasetStorage VisitSensorRegion
 COLUMNS = $(foreach tbl,$(TABLES),generated/$(tbl)_columns.tex)
-UNITS = AbstractFilter Label SkyPix Camera Sensor PhysicalFilter Exposure Visit ExposureRange SkyMap Tract Patch
+UNITS = AbstractFilter Label SkyPix Camera Sensor PhysicalFilter Exposure Visit ExposureRange \
+	SkyMap Tract Patch
 UNIT_INCS = $(foreach unit,$(UNITS),generated/$(unit)_unit.tex)
+JOINS = ExposureRangeJoin MultiCameraExposureJoin VisitSensorSkyPixJoin VisitSkyPixJoin PatchSkyPixJoin \
+	TractSkyPixJoin VisitSensorPatchJoin VisitSensorTractJoin VisitPatchJoin VisitTractJoin
+JOIN_INCS = $(foreach join,$(JOINS),generated/$(join)_join.tex)
 GRAPHS = generated/All_relationships.pdf DataUnitJoins.pdf DataUnitJoinsLegend.pdf
 
-$(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS) $(UNIT_INCS)
+$(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS) $(UNIT_INCS) $(JOIN_INCS)
 	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error
 
 generated/schema.yaml:
@@ -21,6 +25,9 @@ generated/schema.yaml:
 	python generated/regen.py $@
 
 %_unit.tex: generated/schema.yaml generated/regen.py
+	python generated/regen.py $@
+
+%_join.tex: generated/schema.yaml generated/regen.py
 	python generated/regen.py $@
 
 %_relationships.dot: generated/schema.yaml generated/regen.py
@@ -35,10 +42,10 @@ DataUnitJoins.pdf: DataUnitJoins.dot
 DataUnitJoinsLegend.pdf: DataUnitJoinsLegend.dot
 	dot -Tpdf $< > $@
 
-generated: $(COLUMNS) $(GRAPHS) $(UNIT_INCS)
+generated: $(COLUMNS) $(GRAPHS) $(UNIT_INCS) $(JOIN_INCS)
 
 clean:
-	rm $(COLUMNS) $(GRAPHS) $(UNIT_INCS)
+	rm $(COLUMNS) $(GRAPHS) $(UNIT_INCS) $(JOIN_INCS)
 	latexmk -C
 
 .PHONY: clean generated

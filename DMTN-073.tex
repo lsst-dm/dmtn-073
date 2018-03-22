@@ -26,6 +26,8 @@
 
 \newcommand{\unitinc}[1]{\include{generated/#1_unit}}
 
+\newcommand{\joininc}[1]{\include{generated/#1_join}}
+
 
 \title{The Gen3 Butler Registry Schema}
 
@@ -192,7 +194,7 @@ SkyMap DataUnits together define a two-level subdivision of the sky with overlap
 Many predefined DataUnit relationships are many-to-many, and hence are not captured in the descriptions of individual DataUnits above.
 Some of these relationships can be implemented as join tables or views, but others are just SQL expressions that can be used in a SELECT statement's JOIN clause.
 
-The compelte set of conceptual DataUnit relationships is shown in Figure~\ref{rel:DataUnitJoins}.
+The complete set of conceptual DataUnit relationships is shown in Figure~\ref{rel:DataUnitJoins}.
 
 \begin{figure}
     \centering
@@ -202,6 +204,16 @@ The compelte set of conceptual DataUnit relationships is shown in Figure~\ref{re
     \label{rel:DataUnitJoins}
 \end{figure}
 
+\joininc{ExposureRangeJoin}
+\joininc{MultiCameraExposureJoin}
+\joininc{VisitSensorSkyPixJoin}
+\joininc{VisitSkyPixJoin}
+\joininc{PatchSkyPixJoin}
+\joininc{TractSkyPixJoin}
+\joininc{VisitSensorPatchJoin}
+\joininc{VisitPatchJoin}
+\joininc{VisitSensorTractJoin}
+\joininc{VisitTractJoin}
 
 \section{Collections and Provenance}
 \label{sec:collections-and-provenance}

@@ -224,14 +224,8 @@ class SchemaGraph:
             tree = yaml.safe_load(f)
         # Add standard (non-DataUnit) tables.
         self.tables = OrderedDict()
-        for tableName, tableTree in tree["tables"].items():
-            self.tables[tableName] = Table.fromTree(tableName, tableTree)
-        # Add standard (non-DataUnit) joins from foreignKey entries.
         self.joins = []
-        for tableName, tableTree in tree["tables"].items():
-            for fKeyTree in tableTree.get("foreignKeys", ()):
-                self.joins.append(Join.fromTree(fKeyTree, sourceTable=self.tables[tableName],
-                                                allTables=self.tables))
+        self.addTables(tree["tables"])
         # Process DataUnits recursively, so we can build up their joins to Dataset
         # and sort them topologically.
         todo = tree['dataUnits']
@@ -282,14 +276,27 @@ class SchemaGraph:
                 datasetTable.columns[link['name']] = {
                     'name': link['name'],
                     'type': link['type'],
-                    'doc': 'DataUnit link; see %s.' % unitName,
+                    'doc': r'DataUnit link; see %s.' % unitName,
                 }
+        # Need to add extras at their end, because their foreign keys may
+        # target other DataUnit tables that otherwise might not have been
+        # added yet.
+        self.addTables(extraTables)
 
-        # Add extra tables found amongst the DataUnits.
-        for tableName, tableTree in extraTables.items():
+        # Walk through DataUnitJoins, adding to self.tables, self.joins.
+        self.unitJoins = tree["dataunit_joins"]
+        for joinName, joinTree in tree["dataunit_joins"].items():
+            tableTree = joinTree.get("tables", None)
+            if tableTree:
+                self.addTables(tableTree)
+
+
+    def addTables(self, tree):
+        # Add column descriptions.
+        for tableName, tableTree in tree.items():
             self.tables[tableName] = Table.fromTree(tableName, tableTree)
         # Add standard (non-DataUnit) joins from foreignKey entries.
-        for tableName, tableTree in extraTables.items():
+        for tableName, tableTree in tree.items():
             for fKeyTree in tableTree.get("foreignKeys", ()):
                 self.joins.append(Join.fromTree(fKeyTree, sourceTable=self.tables[tableName],
                                                 allTables=self.tables))
@@ -380,6 +387,33 @@ class SchemaGraph:
         else:
             printer.direct(r"\textbf{Table:} none")
 
+    def printDataUnitJoin(self, name, printer):
+        tree = self.unitJoins[name]
+        printer.format(r"\subsubsection{{{name}}}", name=name)
+        printer.format(r"\label{{join:{name}}}", name=name)
+        printer.direct()
+        wrapper = TextWrapper(width=70, initial_indent=printer.indent, subsequent_indent=printer.indent)
+        for line in wrapper.wrap(printer.escape(tree['doc'])):
+            printer.direct(line)
+        printer.direct()
+        if 'tables' in tree:
+            if 'sql' in tree:
+                printer.format(r"\textbf{{View:}} \hyperref[tbl:{name}]{{{name}}}, defined as:", name=name)
+                with printer.block(begin=r"\begin{verbatim}", end=r"\end{verbatim}") as p:
+                    p.direct(tree['sql'])
+            else:
+                printer.format(r"\textbf{{Table:}} \hyperref[tbl:{name}]{{{name}}}", name=name)
+            with printer.block(begin=r"\begin{table}[!htb]", end=r"\end{table}") as p:
+                with p.block(begin=r"{\footnotesize", end=r"}") as p2:
+                    self.tables[name].printColumns(p2)
+                p.format(r"\caption{{{name} Columns}}", name=name)
+                p.format(r"\label{{tbl:{name}}}", name=name)
+        elif 'sql' in tree:
+            printer.direct(r"\textbf{Join Expression:}")
+            with printer.block(begin=r"\begin{verbatim}", end=r"\end{verbatim}") as p:
+                    p.direct(tree['sql'])
+
+
 if __name__ == "__main__":
     provenanceTables = set(["Quantum", "Run", "Execution", "DatasetConsumers"])
     graph = SchemaGraph()
@@ -392,6 +426,10 @@ if __name__ == "__main__":
         unit, _ = output.split("_")
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
             graph.printDataUnit(unit, Printer(stream=f))
+    elif output.endswith("_join.tex"):
+        join, _ = output.split("_")
+        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
+            graph.printDataUnitJoin(join, Printer(stream=f))
     elif output == "DataUnit_relationships.dot":
         graph.removeTables(graph.getAllTables() - graph.getDataUnitTables())
         with open(os.path.join(GENERATED_PATH, output), 'w') as f:
