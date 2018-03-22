@@ -418,36 +418,18 @@ if __name__ == "__main__":
     provenanceTables = set(["Quantum", "Run", "Execution", "DatasetConsumers"])
     graph = SchemaGraph()
     _, output = os.path.split(sys.argv[1])
-    if output.endswith("_columns.tex"):
-        table, _ = output.split("_")
-        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-            graph.tables[table].printColumns(Printer(stream=f))
-    elif output.endswith("_unit.tex"):
-        unit, _ = output.split("_")
-        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-            graph.printDataUnit(unit, Printer(stream=f))
-    elif output.endswith("_join.tex"):
-        join, _ = output.split("_")
-        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-            graph.printDataUnitJoin(join, Printer(stream=f))
-    elif output == "DataUnit_relationships.dot":
-        graph.removeTables(graph.getAllTables() - graph.getDataUnitTables())
-        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-            graph.printGraphViz(Printer(stream=f))
-    elif output == "Provenance_relationships.dot":
-        toRemove = graph.getAllTables()
-        toRemove -= graph.getProvenanceTables()
-        #toRemove.discard("Dataset")
-        graph.removeTables(toRemove)
-        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-            graph.printGraphViz(Printer(stream=f))
-    elif output == "Dataset_relationships.dot":
-        graph.removeTables(graph.getDataUnitTables())
-        graph.removeTables(graph.getProvenanceTables())
-        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-            graph.printGraphViz(Printer(stream=f))
-    elif output == "All_relationships.dot":
-        with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-            graph.printGraphViz(Printer(stream=f))
-    else:
-        raise ValueError("Unrecognized output file")
+    with open(os.path.join(GENERATED_PATH, output), 'w') as f:
+        printer = Printer(stream=f)
+        if output.endswith("_columns.tex"):
+            table, _ = output.split("_")
+            graph.tables[table].printColumns(printer)
+        elif output.endswith("_unit.tex"):
+            unit, _ = output.split("_")
+            graph.printDataUnit(unit, printer)
+        elif output.endswith("_join.tex"):
+            join, _ = output.split("_")
+            graph.printDataUnitJoin(join, printer)
+        elif output == "relationships.dot":
+            graph.printGraphViz(printer)
+        else:
+            raise ValueError("Unrecognized output file")
