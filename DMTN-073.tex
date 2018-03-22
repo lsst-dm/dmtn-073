@@ -217,6 +217,18 @@ The complete set of conceptual DataUnit relationships is shown in Figure~\ref{fi
 \subsection{Collections}
 \label{sec:collections}
 
+A Collection is a group of Datasets that is constrained to have at most one Dataset for any combination of DatasetType and identifying DataUnits.
+The inputs and outputs of a particular processing run is typically associated with a Collection, as are human-curated combinations of related processing runs.
+
+Only one Collection within a Registry is accessible to any Butler client, making them from a user perspective the most natural analog to the Gen2 Butler's Data Repositories.
+The constraint on Dataset uniqueness within a Collection ensures that any \texttt{Butler.get} call has an unambiguous result.
+Instead of lazily chaining Collections in the manner of Gen2 Data Repositories, we simply permit Datasets to belong to multiple Collections.
+
+Collections are implemented via a simple tag table, \tblref{DatasetCollection}, whose entries are just tuples of a \texttt{dataset\_id} and the string name that identifies the Collection.
+
+It may be necessary for performance reasons to introduce an integer primary key for Collections, along with a table to relate each Collection name to its primary key (and possibly other metadata).
+Doing this now seems premature.
+
 \coltable{DatasetCollection}
 
 \subsection{Execution}
