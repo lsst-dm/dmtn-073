@@ -16,7 +16,7 @@ JOIN_INCS = $(foreach join,$(JOINS),generated/$(join)_join.tex)
 GRAPHS = generated/relationships.pdf DataUnitJoins.pdf DataUnitJoinsLegend.pdf
 
 $(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS) $(UNIT_INCS) $(JOIN_INCS)
-	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error
+	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error -interaction=nonstopmode -file-line-error -synctex=1
 
 generated/schema.yaml:
 	curl $(SCHEMA_URL) > generated/schema.yaml
