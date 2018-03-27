@@ -427,6 +427,14 @@ class SchemaGraph:
                 p.format(r"\label{{tbl:{name}}}", name=name)
         elif 'sql' in tree:
             printer.direct(r"\textbf{Join Expression:}")
+            printer.direct()
+
+            def fmtSide(x):
+                return printer.substitute(", ".join(x) if isinstance(x, list) else x)
+
+            printer.format(r"For \texttt{{lhs}}={lhs} and \texttt{{rhs}}={rhs},",
+                           lhs=fmtSide(tree['lhs']),
+                           rhs=fmtSide(tree['rhs']))
             with printer.block(begin=r"\begin{verbatim}", end=r"\end{verbatim}") as p:
                     p.direct(tree['sql'])
 

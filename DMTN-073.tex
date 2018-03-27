@@ -28,7 +28,7 @@
 
 \setDocRef{DMTN-073}
 \date{2018-02-19}
-\date{2018-03-23}
+\date{2018-03-27}
 \setDocUpstreamLocation{\url{https://github.com/lsst-dm/dmtn-073}}
 
 \setDocAbstract{%
@@ -37,7 +37,7 @@ Documentation for the SQL schema that will be used to manage datasets in the Gen
 
 \setDocChangeRecord{%
 \addtohist{}{2018-02-19}{Initial version.}{J.~Bosch}
-\addtohist{}{2018-03-23}{Ready for dev team review.}{J.~Bosch}
+\addtohist{}{2018-03-27}{Ready for dev team review.}{J.~Bosch}
 %\addtohist{1}{yyyy-mm-dd}{Future changes}{Future person}
 }
 
@@ -56,7 +56,7 @@ The normative, machine-readable version of the minimal schema can be found at:
 
 \verb`daf_butler:config/registry/default_schema.yaml`.
 
-The tables and figures in this document (including the descriptions of table columns) are generated from the contents of that file.
+Most of the tables and figures in this document (including the descriptions of table columns) are generated from the contents of that file.
 
 \begin{figure}
     \centering
@@ -64,6 +64,9 @@ The tables and figures in this document (including the descriptions of table col
     \caption{Table Relationships.  Colors are for disambiguation only.}
     \label{fig:relationships}
 \end{figure}
+
+The current SQL schema should be considered tentative and conceptual; we expect a round of normalization/denormalization changes to be driven by performance concerns in the future.
+In order to reduce future disruption from such changes, we'd like to identify and fix now any aspects of the schema that are both guaranteed to cause performance problems and have obvious solutions, but we would like to avoid hypothetical optimization discussions until we have an opportunity to see how the schema performs under realistic conditions.
 
 \section{Datasets}
 \label{sec:datasets}
@@ -296,12 +299,12 @@ While the set of StorageClasses is predefined and shared by all Registries, it i
 We nevertheless expect the set of StorageClass-specialized Dataset metadata tables to be common to all Registries, and a future version of this document will include a complete description of their schemas.
 StorageClass-specific metadata tables must have \texttt{dataset\_id} field that is used both as that table's primary key and a foreign key to the \tblref{Dataset} table.
 
-The set of DatasetTypes is very much dynamic, and may not be the same for different Registries.  
-DatasetType-specific Dataset metadata tables are thus never expected to be a part of the common schema, and hence expressions that rely on them are considered non-portable.
-StorageClass-specific metadata tables must have \texttt{dataset\_id} field that is used both as that table's primary key and a foreign key to the \tblref{Dataset} table.
+The set of DatasetTypes is very much dynamic, and may not be the same for different Registries.
+DatasetType-specific Dataset metadata tables are thus never expected to be a part of the common schema, and expressions that rely on them are always considered non-portable.
+DatasetType-specific metadata tables must have \texttt{dataset\_id} field that is used both as that table's primary key and a foreign key to the \tblref{Dataset} table.
 
 While not all Registries will have the full set of Cameras, any Registry that contains a certain Camera can be expected to have all of the custom metadata tables associated with it.
-Expressions that rely on Camera-specific metadata tables are obviously not portable between Cameras, and for this reason Camera specialization code should attempt to put most frequently-used metadata in the generic fields provided by the generic Camera DataUnit tables (e.g. \hyperref[tbl:Sensor]{Sensor.group}) and avoid any need for Camera-specific metadata tables when possible.
+Expressions that rely on Camera-specific metadata tables are obviously not portable between Cameras, and for this reason Camera specialization code should attempt to put most frequently-used metadata in the generic fields provided by the generic Camera DataUnit tables (e.g. \hyperref[tbl:Sensor]{Sensor.group}) and avoid any need for Camera-specific metadata tables.
 The definition of the schemas of Camera-specific DataUnit metadata tables is delegated to the \texttt{obs} package responsible for defining that camera.
 
 \appendix
