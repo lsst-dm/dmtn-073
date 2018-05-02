@@ -281,7 +281,7 @@ The \tblref{DatasetStorage} table provides public information about how Datasets
 
 This table is unique among Registry tables in that it is updated directly by Datastore, rather than via Butler (whether this goes through a Registry client or some other common interface to the database is TBD).
 In general, Datastores must also record private information about each Dataset (e.g. filenames, read formatters).
-These entries may be stored in additional tables in the same database that holds the Registry, but may also be stored elsewhere.
+These entries may be stored in additional tables in the same database that holds the Registry, but may also be stored elsewhere, and are never considered part of the Registry even if they are stored in the same database.
 
 \section{Additional Metadata Tables}
 \label{sec:metadata}
@@ -306,6 +306,33 @@ DatasetType-specific metadata tables must have \texttt{dataset\_id} field that i
 While not all Registries will have the full set of Cameras, any Registry that contains a certain Camera can be expected to have all of the custom metadata tables associated with it.
 Expressions that rely on Camera-specific metadata tables are obviously not portable between Cameras, and for this reason Camera specialization code should attempt to put most frequently-used metadata in the generic fields provided by the generic Camera DataUnit tables (e.g. \hyperref[tbl:Sensor]{Sensor.group}) and avoid any need for Camera-specific metadata tables.
 The definition of the schemas of Camera-specific DataUnit metadata tables is delegated to the \texttt{obs} package responsible for defining that camera.
+
+\subsection{POSIX Filesystem Datastores}
+
+A Datastore backed by a POSIX filesystem is expected to be a major component of the LSST production environment.
+It also serves as a useful example of the kind of tabular information Datastores must store outside the Registry.
+
+A POSIX Filesystem Datastore is configured\footnote{in part; a full discussion of Datastore configuration is beyond the scope of this document} by associating a \emph{Formatter} object with each StorageClass.
+Formatters having methods for both reading and writing objects, but the configuration is only used to select the Formatter used when writing.
+When a Dataset is written, the name of the Formatter is saved by the Datastore and associated with that Dataset, so the same Formatter can be used for reading later.
+This means that instances of a single StorageClass can be stored in multiple ways within a single Datastore, and the user need not know the configuration that was used to write a Dataset in order to read it.
+
+The filesystem paths in a POSIX Filesystem Datastore are computed relative to the root of the data repository, and must be unique for each Dataset.
+This may be achieved by inserting the Dataset's Run ID and DataUnit values into a string template that is unique for its DatasetType; this produces paths of the same form as those of the Gen2 Butler.
+Unique filenames can also be achieved smply by including the primary key of the \ref{tbl:Dataset} table (\texttt{dataset\_id}).
+Our implementation permits but does not require filesystem paths to include subdirectories.
+
+The internal information a POSIX Filesystem Datastore records for each Dataset is thus:
+\begin{itemize}
+\item \texttt{dataset\_id} (integer, primary key);
+\item the Formatter name (string);
+\item the filesystem path (string);
+\item the StorageClass name (string).
+\end{itemize}
+Our implementation currently uses special StorageClass names to indicate certain types of composite dataset storage, which means that the Datastore cannot rely on obtaining the StorageClass from the Butler.
+This may change in the future, but it may continue to be useful to record the StorageClass here as well as a consistency check.
+
+As noted above, this internal information may be stored either within the same database as a Registry or in an external (not necessarily SQL) database.
 
 \appendix
 
