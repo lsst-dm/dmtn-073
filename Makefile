@@ -13,7 +13,8 @@ UNIT_INCS = $(foreach unit,$(UNITS),generated/$(unit)_unit.tex)
 JOINS = ExposureRangeJoin MultiCameraExposureJoin VisitSensorSkyPixJoin VisitSkyPixJoin PatchSkyPixJoin \
 	TractSkyPixJoin VisitSensorPatchJoin VisitSensorTractJoin VisitPatchJoin VisitTractJoin
 JOIN_INCS = $(foreach join,$(JOINS),generated/$(join)_join.tex)
-GRAPHS = generated/relationships.pdf DataUnitJoins.pdf DataUnitJoinsLegend.pdf
+GRAPHS = generated/relationships-all.pdf DataUnitJoins.pdf DataUnitJoinsLegend.pdf \
+	generated/relationships-dataunits-only.pdf generated/relationships-no-dataunits.pdf
 
 $(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS) $(UNIT_INCS) $(JOIN_INCS)
 	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error -interaction=nonstopmode -file-line-error -synctex=1
@@ -30,10 +31,10 @@ generated/schema.yaml:
 %_join.tex: generated/schema.yaml generated/regen.py
 	python generated/regen.py $@
 
-generated/relationships.dot: generated/schema.yaml generated/regen.py
+generated/relationships-%.dot: generated/schema.yaml generated/regen.py
 	python generated/regen.py $@
 
-generated/relationships.pdf: generated/relationships.dot
+generated/relationships-%.pdf: generated/relationships-%.dot
 	dot -Tpdf $< > $@
 
 DataUnitJoins.pdf: DataUnitJoins.dot

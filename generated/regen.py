@@ -327,6 +327,9 @@ class SchemaGraph:
         for unitTree in self.units.values():
             for tableName in unitTree.get('tables', {}).keys():
                 r.add(tableName)
+        for unitJoinTree in self.unitJoins.values():
+            for tableName in unitJoinTree.get('tables', {}).keys():
+                r.add(tableName)
         return r
 
     def getProvenanceTables(self):
@@ -354,7 +357,7 @@ class SchemaGraph:
             p2.direct('node [shape=plaintext fontname=helvetica fontsize=10]')
             p2.direct('edge [dir=both]')
             p2.direct('rankdir=LR')
-            p2.direct('concentrate=true')
+            p2.direct('concentrate=false')
             for table in self.tables.values():
                 table.printGraphViz(p2)
             for n, join in enumerate(self.joins):
@@ -454,7 +457,13 @@ if __name__ == "__main__":
         elif output.endswith("_join.tex"):
             join, _ = output.split("_")
             graph.printDataUnitJoin(join, printer)
-        elif output == "relationships.dot":
+        elif output == "relationships-all.dot":
+            graph.printGraphViz(printer)
+        elif output == "relationships-no-dataunits.dot":
+            graph.removeTables(graph.getDataUnitTables())
+            graph.printGraphViz(printer)
+        elif output == "relationships-dataunits-only.dot":
+            graph.removeTables(graph.getAllTables() - graph.getDataUnitTables())
             graph.printGraphViz(printer)
         else:
             raise ValueError("Unrecognized output file")

@@ -60,9 +60,19 @@ Most of the tables and figures in this document (including the descriptions of t
 
 \begin{figure}
     \centering
-    \includegraphics[height=0.95\textheight]{generated/relationships}
-    \caption{Table Relationships.  Colors are for disambiguation only.}
-    \label{fig:relationships}
+    \includegraphics[height=0.95\textheight]{generated/relationships-no-dataunits}
+    \caption{Table Relationships, excluding DataUnits.
+    Colors are for disambiguation only.}
+    \label{fig:relationships-no-dataunits}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[height=0.95\textheight]{generated/relationships-dataunits-only}
+    \caption{Table Relationships for DataUnits and their join tables.
+    Each DataUnit table is also related to columns in the Dataset table (not shown) that correspond to DataUnit primary key columns.
+    Colors are for disambiguation only.}
+    \label{fig:relationships-dataunits-only}
 \end{figure}
 
 The current SQL schema should be considered tentative and conceptual; we expect a round of normalization/denormalization changes to be driven by performance concerns in the future.
