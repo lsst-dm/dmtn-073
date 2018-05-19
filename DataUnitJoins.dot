@@ -13,7 +13,7 @@ digraph relationships {
         AbstractFilter
     }
     {
-        node [color=dodgerblue4, fontcolor=dodgerblue4]
+        node [color=dodgerblue, fontcolor=dodgerblue]
         Camera
         Visit
         Sensor
