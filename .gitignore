@@ -1,1 +1,11 @@
-_build/
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.pdf
+*.toc
+*.yaml
+generated/*.dot
+generated/*.tex
+*.synctex.gz

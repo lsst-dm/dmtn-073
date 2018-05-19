@@ -1,0 +1,440 @@
+\documentclass[DM,toc]{lsstdoc}
+
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\newcommand{\tblref}[1]{\hyperref[tbl:#1]{#1}}
+\newcommand{\unitref}[1]{\hyperref[unit:#1]{#1}}
+
+\newcommand{\coltable}[1]{
+    \begin{table}[htb]
+        {
+            \footnotesize
+            \input{generated/#1_columns}
+        }
+        \caption{#1 Columns}
+        \label{tbl:#1}
+    \end{table}
+}
+
+\newcommand{\unitinc}[1]{\input{generated/#1_unit}}
+
+\newcommand{\joininc}[1]{\input{generated/#1_join}}
+
+
+\title{The Gen3 Butler Registry Schema}
+
+\author{Jim Bosch}
+
+\setDocRef{DMTN-073}
+\date{2018-02-19}
+\date{2018-03-27}
+\date{2018-05-19}
+\setDocUpstreamLocation{\url{https://github.com/lsst-dm/dmtn-073}}
+
+\setDocAbstract{%
+Documentation for the SQL schema that will be used to manage datasets in the Gen3 Butler.
+}
+
+\setDocChangeRecord{%
+\addtohist{}{2018-02-19}{Initial version.}{J.~Bosch}
+\addtohist{}{2018-03-27}{Ready for dev team review.}{J.~Bosch}
+\addtohist{}{2018-05-19}{Ready for DM-wide RFC review.}{J.~Bosch}
+%\addtohist{1}{yyyy-mm-dd}{Future changes}{Future person}
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+\label{sec:overview}
+
+This document is a human-readable description of the minimal SQL schema that will be used in the Gen3 Butler's Registry component.
+
+While some Registry instances may have additional tables, all must provide at least the tables and views described here, and are generally expected to use the mechanisms described here for most extensions.
+
+The normative, machine-readable version of the minimal schema can be found at:
+
+\verb`daf_butler:config/schema.yaml`.
+
+Most of the tables and figures in this document (including the descriptions of table columns) are generated from the contents of that file.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{generated/relationships-no-dataunits}
+    \caption{Table Relationships, excluding DataUnits.
+    Colors are for disambiguation only.}
+    \label{fig:relationships-no-dataunits}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[height=0.95\textheight]{generated/relationships-dataunits-only}
+    \caption{Table Relationships for DataUnits and their join tables.
+    Each DataUnit table is also related to columns in the Dataset table (not shown) that correspond to DataUnit primary key columns.
+    Colors are for disambiguation only.}
+    \label{fig:relationships-dataunits-only}
+\end{figure}
+
+The current SQL schema should be considered tentative and conceptual; we expect a round of normalization/denormalization changes to be driven by performance concerns in the future.
+In order to reduce future disruption from such changes, we'd like to identify and fix now any aspects of the schema that are both guaranteed to cause performance problems and have obvious solutions, but we would like to avoid hypothetical optimization discussions until we have an opportunity to see how the schema performs under realistic conditions.
+
+\section{Datasets}
+\label{sec:datasets}
+
+\subsection{Dataset}
+\label{sec:dataset}
+
+The Dataset contains a single record for every discrete unit of data managed by the Registry, and acts as a sort of hub for the rest of the schema: nearly all other tables join to it, either to label datasets (Section~\ref{sec:dataunits}), provide provenance information and define groups (Section~\ref{sec:collections-and-provenance}), or connect to the Datastores that actually store them (Section~\ref{sec:datastore-information}).
+
+Finding a particular dataset (assuming one does not already have the primary key value or provenance information) typically requires three pieces of information:
+\begin{itemize}
+    \item its \hyperref[sec:DatasetType]{DatasetType} (e.g. \texttt{src});
+    \item one or more \hyperref[sec:collections]{Collections} to search;
+    \item a set of \hyperref[sec:dataunits]{DataUnit} values.
+\end{itemize}
+
+The full set of Dataset columns can be found in Table~\ref{tbl:Dataset}.
+
+\coltable{Dataset}
+
+
+\subsection{DatasetType}
+\label{sec:DatasetType}
+
+A DatasetType captures two properties of a Dataset and associates them with a string name:
+\begin{itemize}
+    \item a \emph{StorageClass};
+    \item a set of \hyperref[sec:dataunits]{DataUnit} keys whose corresponding values must be provided to uniquely identify a \tblref{Dataset} within a \hyperref[sec:collections]{Collection}.
+\end{itemize}
+
+StorageClasses are things that Datastores know how to serialize.
+They are closely related to the in-memory data structure or class object used by a Dataset, and in most cases they have a one-to-one relationship with those concepts.
+In other cases, a StorageClass may just correspond to an intermediate opaque serialization interface (e.g. Python's \texttt{pickle}) that can be used to store objects of many different types.
+Opaque StorageTypes generally severely limit the flexibility of Datastores to choose how objects are stored and make it impossible to retreive components or slices from those datasets, but they provide a way to save almost-arbitrary objects to Datastores without adding a new StorageClass each time.
+Because the full set of StorageClasses must in general be known to all Datastores, the set of supported StorageClasses and their definitions is maintained in code, not any particular Registry.
+
+DatasetTypes are expected to be much more dynamic than StorageClasses or \hyperref[sec:dataunits]{DataUnits}; developers should be able to easily define new DatasetTypes by mixing an existing StorageClass with a set of existing \hyperref[sec:dataunits]{DataUnits} and a new name.
+We nevertheless expect DatasetType creation to be quite rare compared with Dataset creation, and certain Registries may limit DatasetType creation to superusers or require adherence to strict naming conventions (see Section~\ref{sec:namespaces-for-string-keys}).
+
+The columns of the DatasetType table itself are shown in Table~\ref{tbl:DatasetType}.
+The list of associated \hyperref[sec:dataunits]{DataUnits} is managed by the \tblref{DatasetTypeUnits} table, and a list of associated metadata tables (see Section~\ref{sec:metadata}) is managed by the \tblref{DatasetTypeMetadata} table.
+
+\coltable{DatasetType}
+\coltable{DatasetTypeUnits}
+\coltable{DatasetTypeMetadata}
+
+
+\subsection{Composite Datasets}
+\label{sec:composite-datasets}
+
+Datasets may be composite: they may contain discrete named child Datasets that can be retrieved efficiently from a parent or combined to form a new parent.
+
+The structure of composite dataset is fully defined by its StorageClass; all Datasets with a particular StorageClass will have the same set of component nnames and component StorageClasses (though some StorageClasses may permit a component to be None/null).
+
+When a DatasetType is registered with a StorageClass that has components, DatasetTypes for those components are automatically created as well.
+The entries in DatasetTypeUnits for these child DatasetTypes will be the same as those for the parent, and the names for the children will have the form \texttt{\{parent-dataset-name\}.\{component-name\}}.
+
+\coltable{DatasetComposition}.
+
+Both parent/composite datasets and child/component Datasets always have entries in the Dataset table, and these are related by the entries of the \tblref{DatasetComposition} table.
+
+Some Datasets are \emph{virtual composites}, which means that they are not
+directly stored in any Datastore.
+These are instead assembled entirely from their components using an ``Assembler'' function stored in the Dataset table's \texttt{assembler} field.
+Note that virtual composites are still ``more than the sum of their parts'' from a Registry perspective.
+They have their own entries in the Dataset table, a number of entries in the \tblref{DatasetComposition} table, and potentially entries one or more \hyperref[sec:metadata]{metadata} tables.
+This means that they must be explicitly created (though unlike other datasets, this can be done without a Datastore) before they can be retreived.
+
+\section{DataUnits}
+\label{sec:dataunits}
+
+A DataUnit is a predefined discrete unit of data that can be used to label a Dataset, such as a \unitref{Visit} or \unitref{Tract}.
+Together, the set of DataUnits are the keys that may be used in data ID dicts, but DataUnits can also be associated with additional metadata fields and other DataUnits.
+These relationships and metadata fields are predefined and managed by the Registry, and are hence a major part of the common Registry schema described by this document.
+
+All of the concrete DataUnits described in this section play the same role in how they relate to Datasets, but they can have very different representations in the SQL schema.
+
+All DataUnits have one or more \textbf{Value Fields}, which provide links to the Dataset table.
+A DataUnit's own Value Fields are not necessarily sufficient to uniquely identify its instances, however; DataUnits can have \textbf{Dependencies}, which are other DataUnits whose Value Fields must \emph{also} be provided (recursively) for uniqueness.
+
+Not all DataUnits have tables.
+Those that do have a (typically) compound primary key that includes its Value Fields and those of its Dependencies (again, recursively).
+A DataUnit table can also have a foreign key constraint that is not a Dependency; for example, a \unitref{Visit} has a foreign key to \unitref{PhysicalFilter}, but the \unitref{PhysicalFilter} is not part of \unitref{Visit}'s compound primary key.
+
+\subsection{Fundamental DataUnits}
+\label{sec:fundamental-dataunits}
+
+Fundamental DataUnits are those that are not associated with a \unitref{Camera} or \unitref{SkyMap}.
+
+\unitinc{Label}
+\unitinc{AbstractFilter}
+\unitinc{SkyPix}
+
+\subsection{Camera DataUnits}
+\label{sec:camera-dataunits}
+
+Camera DataUnits are associated with a particular observatory and instrument, and are generally customized by a particular \texttt{obs} package.
+
+Some Camera DataUnits are populated when a Camera is first defined within a Registry (\unitref{Camera}, \unitref{PhysicalFilter}, \unitref{Sensor}), while others are created when observations are ingested (\unitref{Exposure}, \unitref{Visit}).
+
+\unitref{ExposureRange}s are unique among Camera DataUnits in being defined directly by the existence of one or more Datasets that use them.
+All other Camera DataUnits have their own tables that contain entries that are independent of any particular Dataset (and are typically each associated with many Datasets).
+
+Each combination of \unitref{Visit} and \unitref{Sensor} is also associated with an entry in another table, \tblref{VisitSensorRegion}, which holds the spatial region on the sky associated with each such combination.
+
+\unitinc{Camera}
+\unitinc{PhysicalFilter}
+\unitinc{Sensor}
+\unitinc{Exposure}
+\unitinc{Visit}
+\coltable{VisitSensorRegion}
+\unitinc{ExposureRange}
+
+\subsection{SkyMap DataUnits}
+\label{sec:skymap-dataunits}
+
+SkyMap DataUnits together define a two-level subdivision of the sky with overlaps, suitable for coaddition and coadd processing.
+
+\unitinc{SkyMap}
+\unitinc{Tract}
+\unitinc{Patch}
+
+\subsection{Joins Between DataUnits}
+\label{sec:joins-between-dataunits}
+
+Many predefined DataUnit relationships are many-to-many, and hence are not captured in the descriptions of individual DataUnits above.
+Some of these relationships can be implemented as join tables or views, but others are just SQL expressions that can be used in a SELECT statement's JOIN clause.
+
+The complete set of conceptual DataUnit relationships is shown in Figure~\ref{fig:DataUnitJoins}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{DataUnitJoins}
+    \includegraphics[width=\textwidth]{DataUnitJoinsLegend}
+    \caption{DataUnit Conceptual Joins}
+    \label{fig:DataUnitJoins}
+\end{figure}
+
+\joininc{ExposureRangeJoin}
+\joininc{MultiCameraExposureJoin}
+\joininc{VisitSensorSkyPixJoin}
+\joininc{VisitSkyPixJoin}
+\joininc{PatchSkyPixJoin}
+\joininc{TractSkyPixJoin}
+\joininc{VisitSensorPatchJoin}
+\joininc{VisitPatchJoin}
+\joininc{VisitSensorTractJoin}
+\joininc{VisitTractJoin}
+
+\section{Collections and Provenance}
+\label{sec:collections-and-provenance}
+
+\subsection{Collections}
+\label{sec:collections}
+
+A Collection is a group of Datasets that is constrained to have at most one Dataset for any combination of DatasetType and identifying DataUnits.
+The inputs and outputs of a particular processing run is typically associated with a Collection, as are human-curated combinations of related processing runs.
+
+Only one Collection within a Registry is accessible to any Butler client, making them from a user perspective the most natural analog to the Gen2 Butler's Data Repositories.
+The constraint on Dataset uniqueness within a Collection ensures that any \texttt{Butler.get} call has an unambiguous result.
+Instead of lazily chaining Collections in the manner of Gen2 Data Repositories, we simply permit Datasets to belong to multiple Collections.
+
+Collections are implemented via a simple tag table, \tblref{DatasetCollection}, whose entries are just tuples of a \texttt{dataset\_id} and the string name that identifies the Collection.
+
+It may be necessary for performance reasons to introduce an integer primary key for Collections, along with a table to relate each Collection name to its primary key (and possibly other metadata).
+Doing this now seems premature.
+
+\coltable{DatasetCollection}
+
+\subsection{Execution}
+\label{sec:excution}
+
+Records of the \tblref{Execution} table can be used to represent any step in a production.
+Executions are frequently associated one-to-one with records of other tables that use the same primary key fields (such as \hyperref[sec:run]{Run} and \hyperref[sec:quantum]{Quantum}).
+Conceptually these tables are Execution specializations.
+Executions themselves only record basic information about the step and cannot be directly nested.
+
+The full set of Execution columns can be found in Table~\ref{tbl:Execution}.
+
+\coltable{Execution}
+
+\subsection{Run}
+\label{sec:run}
+
+\tblref{Run} is specialization of Execution used to capture coarse provenance.
+Every Dataset and \hyperref[sec:quantum]{Quantum} must be associated with a Run.
+
+For Datasets produced by SuperTask Pipelines, a Run represents an execution of a single Pipeline with no change to its configuration or the software environment.
+Other special Runs may represent raw data ingest mechanisms.
+
+The full set of Run columns can be found in Table~\ref{tbl:Run}.
+
+\coltable{Run}
+
+\subsection{Quantum}
+\label{sec:quantum}
+
+\tblref{Quantum} is a specialization of Execution used to capture fine-grained provenance for Datasets produced by SuperTasks.
+
+Each Quantum record is uniquely associated with an Execution record.
+
+The full set of Quantum columns can be found in Table~\ref{tbl:Quantum}.
+
+\coltable{Quantum}
+
+\section{Datastore Information}
+\label{sec:datastore-information}
+
+The \tblref{DatasetStorage} table provides public information about how Datasets are stored in particular Datastores.  This includes whether they are present at all, which is indicated by the existence of a record with a particular Dataset/Datastore combination.
+
+\coltable{DatasetStorage}
+
+This table is unique among Registry tables in that it is updated directly by Datastore, rather than via Butler (whether this goes through a Registry client or some other common interface to the database is TBD).
+In general, Datastores must also record private information about each Dataset (e.g. filenames, read formatters).
+These entries may be stored in additional tables in the same database that holds the Registry, but may also be stored elsewhere, and are never considered part of the Registry even if they are stored in the same database.
+
+\section{Additional Metadata Tables}
+\label{sec:metadata}
+
+Registries may have additional metadata tables that are associated only with certain Dataset or DataUnit entries.
+These fall into three categories:
+\begin{itemize}
+    \item metadata for Datasets with a particular StorageClass;
+    \item metadata for Datasets with a particular DatasetType;
+    \item metadata for Camera DataUnits associated with a particular Camera.
+\end{itemize}
+No metadata tables are required for a fully-functional Butler implementation, but we expect them to contain quantities that may be frequently used in user queries to locate Datasets with certain properties (including the expressions used to describe what processing should be performed by the SuperTask framework).
+
+While the set of StorageClasses is predefined and shared by all Registries, it is currently considered out of scope for this document, and hence the metadata tables are as well.
+We nevertheless expect the set of StorageClass-specialized Dataset metadata tables to be common to all Registries, and a future version of this document will include a complete description of their schemas.
+StorageClass-specific metadata tables must have \texttt{dataset\_id} field that is used both as that table's primary key and a foreign key to the \tblref{Dataset} table.
+
+The set of DatasetTypes is very much dynamic, and may not be the same for different Registries.
+DatasetType-specific Dataset metadata tables are thus never expected to be a part of the common schema, and expressions that rely on them are always considered non-portable.
+DatasetType-specific metadata tables must have \texttt{dataset\_id} field that is used both as that table's primary key and a foreign key to the \tblref{Dataset} table.
+
+While not all Registries will have the full set of Cameras, any Registry that contains a certain Camera can be expected to have all of the custom metadata tables associated with it.
+Expressions that rely on Camera-specific metadata tables are obviously not portable between Cameras, and for this reason Camera specialization code should attempt to put most frequently-used metadata in the generic fields provided by the generic Camera DataUnit tables (e.g. \hyperref[tbl:Sensor]{Sensor.group}) and avoid any need for Camera-specific metadata tables.
+The definition of the schemas of Camera-specific DataUnit metadata tables is delegated to the \texttt{obs} package responsible for defining that camera.
+
+\subsection{POSIX Filesystem Datastores}
+
+A Datastore backed by a POSIX filesystem is expected to be a major component of the LSST production environment.
+It also serves as a useful example of the kind of tabular information Datastores must store outside the Registry.
+
+A POSIX Filesystem Datastore is configured\footnote{in part; a full discussion of Datastore configuration is beyond the scope of this document} by associating a \emph{Formatter} object with each StorageClass.
+Formatters having methods for both reading and writing objects, but the configuration is only used to select the Formatter used when writing.
+When a Dataset is written, the name of the Formatter is saved by the Datastore and associated with that Dataset, so the same Formatter can be used for reading later.
+This means that instances of a single StorageClass can be stored in multiple ways within a single Datastore, and the user need not know the configuration that was used to write a Dataset in order to read it.
+
+The filesystem paths in a POSIX Filesystem Datastore are computed relative to the root of the data repository, and must be unique for each Dataset.
+This may be achieved by inserting the Dataset's Run ID and DataUnit values into a string template that is unique for its DatasetType; this produces paths of the same form as those of the Gen2 Butler.
+Unique filenames can also be achieved smply by including the primary key of the \ref{tbl:Dataset} table (\texttt{dataset\_id}).
+Our implementation permits but does not require filesystem paths to include subdirectories.
+
+The internal information a POSIX Filesystem Datastore records for each Dataset is thus:
+\begin{itemize}
+\item \texttt{dataset\_id} (integer, primary key);
+\item the Formatter name (string);
+\item the filesystem path (string);
+\item the StorageClass name (string).
+\end{itemize}
+Our implementation currently uses special StorageClass names to indicate certain types of composite dataset storage, which means that the Datastore cannot rely on obtaining the StorageClass from the Butler.
+This may change in the future, but it may continue to be useful to record the StorageClass here as well as a consistency check.
+
+As noted above, this internal information may be stored either within the same database as a Registry or in an external (not necessarily SQL) database.
+
+\appendix
+
+\section{Possible Modifications for Multi-User Environments}
+\label{sec:multi-user-environments}
+
+Some database servers will be expected to effectively handle multiple layered Registries, or at least provide a single Registry with complex, multi-user Dataset ownership.
+For example, a Registry that supports test processing for internal LSST development could allow all users to see all entries in all tables, but users could be permitted to create and modify only entities (e.g. Collections, Datasets, DataUnits) that they created.
+The Registries that support the public LSST Science Platform must be considerably more complex; each user effectively sees a different Registry, because in addition to the common (and read-only) official LSST data products they may have read and possibly write access to different user-produced data products.
+These cannot be different databases; user-driven processing will essentially always use official data products as inputs, and user-defined Collections will certainly include official Datasets.
+
+These features are probably best implemented in different ways for different RDBMSs, but they should build on similar functionality for layered sharing of astronomical catalogs that has long been planned for the Science Platform (and already exists in other astronomical database systems, such as SkyServer's CasJobs).
+The number of entries in multi-user Registry tables should be orders of magnitude smaller than the the number of entries in shared astronomical catalogs (even the smallest catalog Datasets typically have thousands of records but require just a handful of Registry entries), but Registy tables may have much more complex relationships.
+
+One technique for supporting layered Registries that may be useful for any RDBMS is splitting up a Registry ``table'' into multiple actualy tables (for different users, groups, or access levels) and providing a (possibly temporary) view that combines them.
+For example, assuming an RDBMS that supports namespaces of some kind, we could provide per-user Collections with something like the following:
+\begin{verbatim}
+    % When creating the data release:
+    CREATE TABLE dr2.DatasetCollections (dataset_id int, collection string);
+
+    % ...populate dr2 tables...
+
+    % When user Alice signs up for a personal data repository:
+    CREATE TABLE users.alice.DatasetCollections (dataset_id, collection string);
+
+    % Whenever Alice creates a Registry client:
+    CREATE TEMPORARY VIEW DatasetCollection
+        SELECT * FROM dr2.DatasetCollection
+        UNION
+        SELECT * FROM users.alice.DatasetCollection;
+\end{verbatim}
+
+We have explicitly declared the common schema to be a read-only (i.e. SELECT-only) interface for precisely this reason; all operations that need to update or append to common schema ``tables'' must go through a Python interface that can be customized by specific Registry implementations to write to the appropriate underlying tables.
+
+\subsection{Cross-Registry Auto-Increment Keys}
+\label{sec:cross-registry-auto-increment-keys}
+
+This technique of using union views to combine multiple implementation tables is problematic for tables that have an autoincrement primary key, such as \tblref{Dataset} and \tblref{Execution}: inserts to different implementation tables could easily generate ID conflicts in the union.
+
+Some RDBSs may provide ways for multiple tables to share an autoincrement ID source, which would of course be the most natural solution.
+ID ranges may also be reserved for different users, and could even be shared by users and rewritten only in the (probably rare) case where users with the same ID range opt to publish data to each other.
+
+Another approach is to augment each autoincrement field with another field that is unique to each implementation table, and use them together as a compound primary key.
+This of course changes the public registy schema, and in fact an earlier version of the common schema included these fields.
+We have since dropped them after determining that they would not generally be useful in implementing transfers between Registries (e.g. between SQLite Registries on shared-nothing worker nodes and the Data Backbone), as other factors would make rewriting the IDs almost inevitable in those contexts.
+The compound primary key approach may be more useful in multi-user single-database Registries however, where ID rewriting is more disruptive and we have more control over the assignment of the per-table unique values.
+Adding compound primary keys back into the schema could be very disruptive if done after single-key Registries are in common use, however, so it is important to decide during initial Butler development if other approaches can be used instead.
+
+\subsection{Namespaces for String Keys}
+\label{sec:namespaces-for-string-keys}
+
+Some Tables and DataUnits use strings as unique identifiers, including DatasetType, Collections, SkyMaps, and Labels.
+These can also have problems with clashes in multi-user environments, regardless of whether the Registry uses union views to combine multiple implementation tables.
+For example, because the definition of a DatasetType cannot change as long as it has any Datasets associated with it, it may be prudent to use DatasetType names in operations that encode the name of the data release it is intended for.
+During construction, a cycle name or other periodically-refreshed namespace could be used for shared DatasetTypes (etc.) instead.
+
+While normal users of a multi-user will most frequently use predefined, shared DatasetTypes, SkyMaps, and Labels, user-defined versions of these must be possible, and per-user Collections are expected to be quite common.
+These should probably include the username (probably as a prefix).
+
+These conventions can of course be implemented within regular single-strings fields with no special database support, but it is worth considering whether it would be better to split the namespaces into separate fields.
+If the Python API provides a ``using declaration'' functionality that sets the default namespaces to be searched for quantities, having a separate namespace field for string keys might cut down on the need to do string manipulation in queries.
+It could also make it easier to implement automatic/enforced per-user namespaces when using union joins over multiple implementation tables.
+Again using Collections as an example, we could omit the Collection namespaces from the implementation tables, and only include them in the join:
+\begin{verbatim}
+    % When creating the data release:
+    CREATE TABLE dr2.DatasetCollections (dataset_id int, collection string);
+
+    % ...populate dr2 tables...
+
+    % When user Alice signs up for a personal data repository:
+    CREATE TABLE users.alice.DatasetCollections (dataset_id, collection string);
+
+    % Whenever Alice creates a Registry client:
+    CREATE TEMPORARY VIEW DatasetCollection
+        SELECT
+            dr2.DatasetCollection.dataset_id AS dataset_id,
+            "dr2" AS namespace,
+            dr2.DatasetCollection.collection AS collection,
+        FROM dr2.DatasetCollection
+        
+        UNION
+        
+        SELECT
+            users.alice.DatasetCollection.dataset_id AS dataset_id,
+            "alice" AS namespace,
+            users.alice.DatasetCollection.collection AS collection,
+        FROM users.alice.DatasetCollection;
+\end{verbatim}
+
+Just like compound primary keys for tables with auto-increment keys, adding namespace fields to unique string identifiers could be highly disruptive if done after Registries are already in broad use.
+If this is considered a useful change, we should make it as early as possible in Butler development.
+
+\end{document}

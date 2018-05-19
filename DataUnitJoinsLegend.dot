@@ -1,0 +1,59 @@
+digraph legend {
+    node [shape=plaintext fontname=helvetica fontsize=10]
+    edge [dir=both color=grey40 arrowsize=0.7]
+    rankdir=LR
+    Col1
+        [label=<
+            <table border="0" cellborder="0" cellpadding="3" cellspacing="0">
+                <tr>
+                  <td align="right" port="DependencyL">Dependency: many</td>
+                </tr>
+                <tr>
+                  <td align="right" port="SpatialL">Spatial: many</td>
+                </tr>
+                <tr>
+                  <td align="right" port="SQLL">SQL Join: one</td>
+                </tr>
+            </table>
+        >];
+    Col2
+        [label=<
+            <table border="0" cellborder="0" cellpadding="3" cellspacing="0">
+                <tr>
+                  <td align="left" port="DependencyR">one</td>
+                </tr>
+                <tr>
+                  <td align="left" port="SpatialR">many</td>
+                </tr>
+                <tr>
+                  <td align="left" port="SQLR">many</td>
+                </tr>
+            </table>
+        >];
+    Col1:DependencyL:e -> Col2:DependencyR:w [arrowtail=none]
+    Col1:SpatialL:e -> Col2:SpatialR:w [arrowtail=diamond arrowhead=diamond style=dashed]
+    Col1:SQLL:e -> Col2:SQLR:w [arrowtail=nonetee arrowhead=crowtee]
+    Col3
+        [label=<
+            <table border="0" cellborder="0" cellpadding="3" cellspacing="0">
+                <tr>
+                  <td><font color="firebrick4">Fundamental DataUnit</font></td>
+                </tr>
+                <tr>
+                  <td><font color="dodgerblue">Camera DataUnit</font></td>
+                </tr>
+                <tr>
+                  <td><font color="seagreen4">SkyMap DataUnit</font></td>
+                </tr>
+            </table>
+        >]
+    {
+        node [shape=box]
+        edge [style=invisible arrowhead=none arrowtail=none]
+        "Table" [color=grey40 fontcolor=grey40]
+        "Non-Table" [style=rounded color=grey40 fontcolor=grey40]
+        "Table" -> Col1
+        "Non-Table" -> Col1
+        Col2 -> Col3
+    }
+}

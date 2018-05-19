@@ -14,7 +14,7 @@ The Gen3 Butler Registry Schema
 DMTN-073
 ========
 
-Documentation for the SQL schema that will be used to manage datasets in the Gen3 Butler
+Documentation for the SQL schema that will be used to manage datasets in the Gen3 Butler.
 
 **Links:**
 
@@ -27,49 +27,25 @@ Documentation for the SQL schema that will be used to manage datasets in the Gen
 Build this technical note
 =========================
 
-You can clone this repository and build the technote locally with `Sphinx`_:
+You can clone this repository and build the technote locally with Latex.
+You must have `lsst-texmf`_ installed.
 
 .. code-block:: bash
 
    git clone https://github.com/lsst-dm/dmtn-073
    cd dmtn-073
-   pip install -r requirements.txt
-   make html
+   make
 
-.. note::
-
-   In a Conda_ environment, ``pip install -r requirements.txt`` doesn't work as expected.
-   Instead, ``pip`` install the packages listed in ``requirements.txt`` individually.
-
-The built technote is located at ``_build/html/index.html``.
 
 Editing this technical note
 ===========================
 
-You can edit the ``index.rst`` file, which is a reStructuredText document.
-The `DM reStructuredText Style Guide`_ is a good resource for how we write reStructuredText.
+You can edit the ``DMTN-070.tex`` file, which is a latex document.
 
 Remember that images and other types of assets should be stored in the ``_static/`` directory of this repository.
 See ``_static/README.rst`` for more information.
 
 The published technote at https://dmtn-073.lsst.io will be automatically rebuilt whenever you push your changes to the ``master`` branch on `GitHub <https://github.com/lsst-dm/dmtn-073>`_.
-
-Updating metadata
-=================
-
-This technote's metadata is maintained in ``metadata.yaml``.
-In this metadata you can edit the technote's title, authors, publication date, etc..
-``metadata.yaml`` is self-documenting with inline comments.
-
-Using the bibliographies
-========================
-
-The bibliography files in ``lsstbib/`` are copies from `lsst-texmf`_.
-You can update them to the current `lsst-texmf`_ versions with::
-
-   make refresh-bib
-
-Add new bibliography items to the ``local.bib`` file in the root directory (and later add them to `lsst-texmf`_).
 
 ****
 
@@ -77,8 +53,5 @@ Copyright 2018 AURA/LSST
 
 This work is licensed under the Creative Commons Attribution 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/.
 
-.. _Sphinx: http://sphinx-doc.org
-.. _DM reStructuredText Style Guide: https://developer.lsst.io/docs/rst_styleguide.html
-.. _this repo: ./index.rst
-.. _Conda: http://conda.pydata.org/docs/
+.. _this repo: ./DMTN-073.tex
 .. _lsst-texmf: https://lsst-texmf.lsst.io

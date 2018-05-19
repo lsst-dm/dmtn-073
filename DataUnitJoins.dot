@@ -1,0 +1,63 @@
+digraph relationships {
+    node [shape=box fontname=helvetica fontsize=10]
+    edge [dir=both color=grey40 arrowsize=0.7]
+    rankdir=BT
+    concentrate=false
+    {
+        node [color=firebrick4, fontcolor=firebrick4]
+        {
+            rank=same
+            Label [style=rounded]
+            SkyPix [style=rounded]
+        }
+        AbstractFilter
+    }
+    {
+        node [color=dodgerblue, fontcolor=dodgerblue]
+        Camera
+        Visit
+        Sensor
+        Exposure
+        PhysicalFilter
+        ExposureRange [style=rounded]
+    }
+    {
+        node [color=seagreen4, fontcolor=seagreen4]
+        SkyMap
+        Tract
+        Patch
+    }
+    {
+        node [color=grey40, fontcolor=grey40]
+        VisitSensorRegion
+        MultiCameraExposureJoin
+    }
+    Visit -> Camera [arrowtail=none]
+    Sensor -> Camera [arrowtail=none]
+    Exposure -> Camera [arrowtail=none]
+    Exposure -> Visit [arrowtail=crowtee arrowhead=nonetee]
+    MultiCameraExposureJoin -> Exposure [arrowtail=crowtee arrowhead=nonetee constraint=false]
+    MultiCameraExposureJoin -> Camera [arrowtail=crowtee arrowhead=nonetee]
+    ExposureRange -> Camera[arrowtail=none]
+    ExposureRange -> Exposure [arrowhead=crowtee arrowtail=crowtee constraint=false]
+    VisitSensorRegion -> Visit [arrowtail=crowtee arrowhead=nonetee]
+    VisitSensorRegion -> Sensor [arrowtail=crowtee arrowhead=nonetee]
+    PhysicalFilter -> Camera [arrowtail=none]
+    AbstractFilter -> PhysicalFilter [arrowhead=nonetee arrowtail=crowtee]
+    PhysicalFilter -> Visit [arrowhead=crowtee arrowtail=nonetee]
+    Tract -> SkyMap [arrowtail=none]
+    Patch -> Tract [arrowtail=none constraint=false]
+    Patch -> SkyMap [arrowtail=none]
+    {
+        edge [arrowtail=diamond arrowhead=diamond style=dashed]
+        SkyPix -> Visit
+        SkyPix -> VisitSensorRegion
+        SkyPix -> Tract
+        SkyPix -> Patch
+        Visit -> Tract
+        Visit -> Patch
+        VisitSensorRegion -> Patch
+        VisitSensorRegion -> Tract
+    }
+
+}
