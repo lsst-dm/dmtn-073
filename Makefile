@@ -1,7 +1,7 @@
 DOCTYPE = DMTN
 DOCNUMBER = 073
 DOCNAME = $(DOCTYPE)-$(DOCNUMBER)
-BRANCH = tickets/DM-12620
+BRANCH = master
 SCHEMA_URL = https://raw.githubusercontent.com/lsst/daf_butler/$(BRANCH)/config/schema.yaml
 
 TABLES = Dataset DatasetType DatasetTypeUnits DatasetTypeMetadata DatasetComposition DatasetCollection \
