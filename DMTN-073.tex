@@ -62,20 +62,19 @@ Most of the tables and figures in this document (including the descriptions of t
 
 \begin{figure}
     \centering
-    \includegraphics[width=\textwidth]{generated/relationships-no-dataunits}
-    \caption{Table Relationships, excluding DataUnits.
-    Colors are for disambiguation only.}
-    \label{fig:relationships-no-dataunits}
+    \includegraphics[width=\textwidth]{generated/relationships-limited}
+    \caption{Table Relationships for the \emph{limited} schema, which lacks
+    DataUnit dimension and join tables. Colors are for disambiguation only.}
+    \label{fig:relationships-limited}
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[height=0.95\textheight]{generated/relationships-dataunits-only}
-    \caption{Table Relationships for DataUnits and their join tables.
-    Each DataUnit table is also related to columns in the Dataset table (not shown) that correspond to DataUnit primary key columns.
-    Colors are for disambiguation only.}
-    \label{fig:relationships-dataunits-only}
+    \includegraphics[width=\textwidth]{generated/relationships-dataUnitsOnly}
+    \caption{Table Relationships, DataUnits and Dataset. Colors are for disambiguation only.}
+    \label{fig:relationships-dataUnitsOnly}
 \end{figure}
+
 
 The current SQL schema should be considered tentative and conceptual; we expect a round of normalization/denormalization changes to be driven by performance concerns in the future.
 In order to reduce future disruption from such changes, we'd like to identify and fix now any aspects of the schema that are both guaranteed to cause performance problems and have obvious solutions, but we would like to avoid hypothetical optimization discussions until we have an opportunity to see how the schema performs under realistic conditions.
