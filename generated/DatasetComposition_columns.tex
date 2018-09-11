@@ -1,0 +1,19 @@
+\begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+  \hline
+  \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+  \hline
+  parent\_dataset\_id & int & PRIMARY KEY &
+      Link to the \tblref{Dataset} entry for the parent/composite
+      dataset.
+      \\
+  \hline
+  component\_dataset\_id & int & PRIMARY KEY &
+      Link (with component\_dataset\_id) to the \tblref{Dataset} entry
+      for a child/component dataset.
+      \\
+  \hline
+  component\_name & str & NOT NULL &
+      Name of this component within this composite.
+      \\
+  \hline
+\end{tabular}

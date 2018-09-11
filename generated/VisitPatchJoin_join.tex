@@ -1,0 +1,57 @@
+\subsubsection{VisitPatchJoin}
+\label{join:VisitPatchJoin}
+
+A spatial join table that relates \unitref{Visit} to \unitref{Patch}
+via \unitref{SkyPix}. Should be implemented as a view; it may be
+materialized as long as it can be kept up to date when new Visits or
+SkyMaps are added. If a database UDF is available to determine whether
+two regions overlap, we could include that in this view to refine the
+results. For now, we will assume that such a UDF is not available.
+
+\textbf{View:} \hyperref[tbl:VisitPatchJoin]{VisitPatchJoin}, defined as:
+\begin{verbatim}
+  SELECT DISTINCT
+  VisitSkyPixJoin.camera,
+  VisitSkyPixJoin.visit,
+  PatchSkyPixJoin.skymap,
+  PatchSkyPixJoin.tract,
+  PatchSkyPixJoin.patch
+FROM
+  VisitSkyPixJoin INNER JOIN PatchSkyPixJoin ON (
+    VisitSkyPixJoin.skypix = PatchSkyPixJoin.skypix
+  );
+
+\end{verbatim}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & NOT NULL &
+              Name of the \unitref{Camera} associated with the
+              \unitref{Visit}.
+          \\
+      \hline
+      visit & int & NOT NULL &
+              \unitref{Visit} ID
+          \\
+      \hline
+      skymap & str & NOT NULL &
+              Name of the \unitref{SkyMap} associated with the
+              \unitref{Patch}.
+          \\
+      \hline
+      tract & int & NOT NULL &
+              \unitref{Tract} ID
+          \\
+      \hline
+      patch & int & NOT NULL &
+              \unitref{Patch} ID
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{VisitPatchJoin Columns}
+  \label{tbl:VisitPatchJoin}
+\end{table}

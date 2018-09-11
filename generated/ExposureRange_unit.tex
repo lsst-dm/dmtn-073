@@ -1,0 +1,23 @@
+\subsubsection{ExposureRange}
+\label{unit:ExposureRange}
+
+An inclusive range of Exposures that may be open in either direction,
+typically used to identify master calibration products. There is no
+SQL table associated with ExposureRanges; there is no additional
+information associated with an \unitref{ExposureRange} besides the
+camera, valid\_first, and valid\_last fields already present in
+\tblref{Dataset}.
+
+\textbf{Dependencies:} Camera
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{valid\_first (int):}
+      first exposure identifier included in the range (inclusive).  may
+      be zero to indicate an open interval.
+  \item \textbf{valid\_last (int):}
+      last exposure identifier included in the range (inclusive).  may
+      be max(int) to indicate an open interval.
+\end{itemize}
+
+\textbf{Table:} none

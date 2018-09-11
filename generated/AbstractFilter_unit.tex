@@ -1,0 +1,32 @@
+\subsubsection{AbstractFilter}
+\label{unit:AbstractFilter}
+
+A filter that is not associated with a particular \unitref{Camera}.
+An abstract filter can be used to relate similar physical filters, and
+is typically the filter associated with coadds.
+
+\textbf{Dependencies:} none
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{abstract\_filter (str):}
+      string name for the abstract filter, frequently a single
+      character.
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:AbstractFilter]{AbstractFilter}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      abstract\_filter & str & PRIMARY KEY &
+              Name of the filter.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{AbstractFilter Columns}
+  \label{tbl:AbstractFilter}
+\end{table}

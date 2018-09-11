@@ -23,7 +23,6 @@
 #
 
 import os
-import sys
 import re
 import copy
 from contextlib import contextmanager
@@ -353,27 +352,29 @@ if __name__ == "__main__":
     noViewSchema = Schema(materializedViewsConfig)
     limitedSchema = Schema(materializedViewsConfig, limited=True)
     dataUnits = DataUnitRegistry.fromConfig(DataUnitConfig())
-    dataUnitJoins = {join.name: join for join in dataUnits.joins.values()}
     dataUnitsOnlyConfig = keepOnly(materializedViewsConfig, ["Dataset"] + list(dataUnits.keys()))
     dataUnitsOnlySchema = Schema(dataUnitsOnlyConfig)
+    regexes = makeLinkRegularExpressions(defaultSchema, dataUnits)
 
-    _, output = os.path.split(sys.argv[1])
-    with open(os.path.join(GENERATED_PATH, output), 'w') as f:
-        printer = Printer(stream=f, regexes=makeLinkRegularExpressions(defaultSchema, dataUnits))
-        if output.endswith("_columns.tex"):
-            table, _ = output.split("_")
-            printTableColumns(printer, defaultSchema.tables[table])
-        elif output.endswith("_unit.tex"):
-            unit, _ = output.split("_")
-            printDataUnitDimension(printer, dataUnits[unit], defaultSchema)
-        elif output.endswith("_join.tex"):
-            join, _ = output.split("_")
-            printDataUnitJoin(printer, dataUnitJoins[join], defaultSchema)
-        elif output == "relationships-all.dot":
-            printSchemaGraph(printer, noViewSchema)
-        elif output == "relationships-limited.dot":
-            printSchemaGraph(printer, limitedSchema)
-        elif output == "relationships-dataUnitsOnly.dot":
-            printSchemaGraph(printer, dataUnitsOnlySchema)
-        else:
-            raise ValueError("Unrecognized output file")
+    for name, table in limitedSchema.tables.items():
+        with open(os.path.join(GENERATED_PATH, f"{name}_columns.tex"), 'w') as f:
+            printer = Printer(stream=f, regexes=regexes)
+            printTableColumns(printer, table)
+
+    for dimension in dataUnits.values():
+        with open(os.path.join(GENERATED_PATH, f"{dimension.name}_unit.tex"), 'w') as f:
+            printer = Printer(stream=f, regexes=regexes)
+            printDataUnitDimension(printer, dimension, defaultSchema)
+
+    for join in dataUnits.joins.values():
+        with open(os.path.join(GENERATED_PATH, f"{join.name}_join.tex"), 'w') as f:
+            printer = Printer(stream=f, regexes=regexes)
+            printDataUnitJoin(printer, join, defaultSchema)
+
+    with open(os.path.join(GENERATED_PATH, "relationships-limited.dot"), 'w') as f:
+        printer = Printer(stream=f, regexes=regexes)
+        printSchemaGraph(printer, limitedSchema)
+
+    with open(os.path.join(GENERATED_PATH, "relationships-dataUnitsOnly.dot"), 'w') as f:
+        printer = Printer(stream=f, regexes=regexes)
+        printSchemaGraph(printer, dataUnitsOnlySchema)

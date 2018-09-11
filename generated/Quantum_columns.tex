@@ -1,0 +1,20 @@
+\begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+  \hline
+  \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+  \hline
+  execution\_id & int & PRIMARY KEY &
+      A unique integer identifier for this \tblref{Quantum}, which is
+      also the execution\_id for an associated \tblref{Execution}
+      record.
+      \\
+  \hline
+  task & str &  &
+      Fully-qualified name of the SuperTask that executed this
+      \tblref{Quantum}.
+      \\
+  \hline
+  run\_id & int &  &
+      Link to the \tblref{Run} this \tblref{Quantum} is a part of.
+      \\
+  \hline
+\end{tabular}

@@ -6,6 +6,4 @@
 *.pdf
 *.toc
 *.yaml
-generated/*.dot
-generated/*.tex
 *.synctex.gz

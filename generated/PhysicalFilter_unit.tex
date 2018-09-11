@@ -1,0 +1,44 @@
+\subsubsection{PhysicalFilter}
+\label{unit:PhysicalFilter}
+
+A filter associated with a particular \unitref{Camera}.
+PhysicalFilters are used to identify datasets that can only be
+associated with a single observation.
+
+\textbf{Dependencies:} Camera
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{physical\_filter (str):}
+      String name of the filter, typically a multi-letter code in a
+      convention defined by the Camera (e.g. "HSC-I" or "F775W").
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:PhysicalFilter]{PhysicalFilter}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & PRIMARY KEY &
+              Name of the \unitref{Camera} with which this filter is
+              associated.
+          \\
+      \hline
+      physical\_filter & str & PRIMARY KEY &
+              String name of the filter, typically a multi-letter code in a
+              convention defined by the \unitref{Camera} (e.g. "HSC-I" or
+              ``F775W'').
+          \\
+      \hline
+      abstract\_filter & str &  &
+              Name of the \unitref{AbstractFilter} with which this filter is
+              associated.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{PhysicalFilter Columns}
+  \label{tbl:PhysicalFilter}
+\end{table}

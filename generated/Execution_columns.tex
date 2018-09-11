@@ -1,0 +1,25 @@
+\begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+  \hline
+  \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+  \hline
+  execution\_id & int & PRIMARY KEY &
+      A unique autoincrement field used as part of the primary key for
+      \tblref{Execution}.
+      \\
+  \hline
+  start\_time & datetime &  &
+      The start time for the execution.  May have a different
+      interpretation for different kinds of execution.
+      \\
+  \hline
+  end\_time & datetime &  &
+      The end time for the execution.  May have a different
+      interpretation for different kinds of execution.
+      \\
+  \hline
+  host & str &  &
+      The system on which the execution was run.  May have a different
+      interpretation for different kinds of execution.
+      \\
+  \hline
+\end{tabular}

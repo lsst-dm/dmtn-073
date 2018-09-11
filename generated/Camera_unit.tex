@@ -1,0 +1,31 @@
+\subsubsection{Camera}
+\label{unit:Camera}
+
+An entity that produces observations.  A \unitref{Camera} defines a
+set of PhysicalFilters and Sensors and a numbering system for the
+Exposures and Visits that represent observations with it.
+
+\textbf{Dependencies:} none
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{camera (str):}
+      Globally unique string indentifier for this Camera.
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:Camera]{Camera}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & PRIMARY KEY &
+              Globally unique string indentifier for this \unitref{Camera}.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{Camera Columns}
+  \label{tbl:Camera}
+\end{table}

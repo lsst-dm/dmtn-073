@@ -1,0 +1,37 @@
+\subsubsection{PatchSkyPixJoin}
+\label{join:PatchSkyPixJoin}
+
+A spatial join table that relates \unitref{Patch} to \unitref{SkyPix},
+also used as an intermediate when relating \unitref{Patch} to
+\unitref{Camera} DataUnits. Entries are expected to be calculated
+outside the database and added along with the \unitref{Patch} itself.
+
+\textbf{Table:} \hyperref[tbl:PatchSkyPixJoin]{PatchSkyPixJoin}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      skymap & str & NOT NULL &
+              Name of the \unitref{SkyMap} associated with the
+              \unitref{Patch}.
+          \\
+      \hline
+      tract & int & NOT NULL &
+              \unitref{Tract} ID
+          \\
+      \hline
+      patch & int & NOT NULL &
+              \unitref{Patch} ID
+          \\
+      \hline
+      skypix & int & NOT NULL &
+              ID of a \unitref{SkyPix} that overlaps the \unitref{Patch}.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{PatchSkyPixJoin Columns}
+  \label{tbl:PatchSkyPixJoin}
+\end{table}

@@ -1,0 +1,28 @@
+\begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+  \hline
+  \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+  \hline
+  execution\_id & int & PRIMARY KEY &
+      A unique integer identifier for this \tblref{Run}, which is also
+      the execution\_id for an associated \tblref{Execution} record.
+      \\
+  \hline
+  collection & str &  &
+      A Collection name with which all Datasets in this \tblref{Run} are
+      initially associated, also used as a human-readable name for this
+      \tblref{Run}.
+      \\
+  \hline
+  environment\_id & int &  &
+      A dataset\_id linking to a \tblref{Dataset} that contains a
+      description of the software environment (e.g. versions) used for
+      this \tblref{Run}.
+      \\
+  \hline
+  pipeline\_id & int &  &
+      A dataset\_id linking to a \tblref{Dataset} that contains a
+      serialization of the SuperTask Pipeline used for this \tblref{Run}
+      (if any).
+      \\
+  \hline
+\end{tabular}

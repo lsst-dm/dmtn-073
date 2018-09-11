@@ -1,0 +1,17 @@
+\begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+  \hline
+  \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+  \hline
+  dataset\_type\_name & str & PRIMARY KEY &
+      Globally unique name for this \tblref{DatasetType}.
+      \\
+  \hline
+  storage\_class & str & NOT NULL &
+      Name of the StorageClass associated with this
+      \tblref{DatasetType}.  All registries must support the full set of
+      standard StorageClasses, so the set of allowed StorageClasses and
+      their properties is maintained in the registry Python code rather
+      than the database.
+      \\
+  \hline
+\end{tabular}

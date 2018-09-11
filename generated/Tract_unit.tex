@@ -1,0 +1,47 @@
+\subsubsection{Tract}
+\label{unit:Tract}
+
+A large rectangular region mapped to the sky with a single map
+projection, associated with a particular \unitref{SkyMap}.
+
+\textbf{Dependencies:} SkyMap
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{tract (int):}
+      Unique (with SkyMap) integer identifier for the Tract.
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:Tract]{Tract}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      skymap & str & PRIMARY KEY &
+              The \unitref{SkyMap} with which this \unitref{Tract} is
+              associated.
+          \\
+      \hline
+      tract & int & PRIMARY KEY &
+              Unique (with \unitref{SkyMap}) integer identifier for the
+              \unitref{Tract}.
+          \\
+      \hline
+      region & bytes &  &
+              A spatial region on the sky that bounds the area associated
+              with the \unitref{Tract}.  This is expected to be more precise
+              than the SkyPixels associated with the \unitref{Visit} (see
+              \tblref{TractSkyPixJoin}), but may still be larger than the
+              \unitref{Tract} as long as it fully covers it. Regions are
+              lsst.sphgeom.ConvexPolygon objects persisted as portable (but
+              not human-readable) bytestrings using the encode and decode
+              methods.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{Tract Columns}
+  \label{tbl:Tract}
+\end{table}

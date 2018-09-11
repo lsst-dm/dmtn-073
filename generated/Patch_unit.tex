@@ -1,0 +1,64 @@
+\subsubsection{Patch}
+\label{unit:Patch}
+
+A rectangular region within a \unitref{Tract}.
+
+\begin{itemize}
+  \item SkyMap
+  \item Tract
+\end{itemize}
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{patch (int):}
+      Unique (with SkyMap and Tract) integer identifier for the Patch.
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:Patch]{Patch}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      skymap & str & PRIMARY KEY &
+              The \unitref{SkyMap} with which this \unitref{Patch} is
+              associated.
+          \\
+      \hline
+      tract & int & PRIMARY KEY &
+              The \unitref{Tract} with which this \unitref{Patch} is
+              associated.
+          \\
+      \hline
+      patch & int & PRIMARY KEY &
+              Unique (with \unitref{SkyMap} and \unitref{Tract}) integer
+              identifier for the \unitref{Patch}.
+          \\
+      \hline
+      cell\_x & int & NOT NULL &
+              Which column this \unitref{Patch} occupies in the
+              \unitref{Tract}'s grid of Patches.
+          \\
+      \hline
+      cell\_y & int & NOT NULL &
+              Which row this \unitref{Patch} occupies in the
+              \unitref{Tract}'s grid of Patches.
+          \\
+      \hline
+      region & bytes &  &
+              A spatial region on the sky that bounds the area associated
+              with the \unitref{Patch}.  This is expected to be more precise
+              than the SkyPixels associated with the \unitref{Visit} (see
+              \tblref{PatchSkyPixJoin}), but may still be larger than the
+              \unitref{Patch} as long as it fully covers it. Regions are
+              lsst.sphgeom.ConvexPolygon objects persisted as portable (but
+              not human-readable) bytestrings using the encode and decode
+              methods.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{Patch Columns}
+  \label{tbl:Patch}
+\end{table}
