@@ -104,6 +104,8 @@ digraph relationships
       <tr><td><b>Tract</b></td></tr>
       <tr><td port="skymap">skymap</td></tr>
       <tr><td port="tract">tract</td></tr>
+      <tr><td port="ra">ra</td></tr>
+      <tr><td port="dec">dec</td></tr>
       <tr><td port="region">region</td></tr>
     </table>
   >];
