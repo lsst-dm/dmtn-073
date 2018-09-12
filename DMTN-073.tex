@@ -130,7 +130,7 @@ The list of associated \hyperref[sec:dataunits]{DataUnits} is managed by the \tb
 
 Datasets may be composite: they may contain discrete named child Datasets that can be retrieved efficiently from a parent or combined to form a new parent.
 
-The structure of composite dataset is fully defined by its StorageClass; all Datasets with a particular StorageClass will have the same set of component nnames and component StorageClasses (though some StorageClasses may permit a component to be None/null).
+The structure of composite dataset is fully defined by its StorageClass; all Datasets with a particular StorageClass will have the same set of component names and component StorageClasses (though some StorageClasses may permit a component to be NULL).
 
 When a DatasetType is registered with a StorageClass that has components, DatasetTypes for those components are automatically created as well.
 The entries in DatasetTypeUnits for these child DatasetTypes will be the same as those for the parent, and the names for the children will have the form \texttt{\{parent-dataset-name\}.\{component-name\}}.
@@ -143,7 +143,7 @@ Some Datasets are \emph{virtual composites}, which means that they are not
 directly stored in any Datastore.
 These are instead assembled entirely from their components using an ``Assembler'' function stored in the Dataset table's \texttt{assembler} field.
 Note that virtual composites are still ``more than the sum of their parts'' from a Registry perspective.
-They have their own entries in the Dataset table, a number of entries in the \tblref{DatasetComposition} table, and potentially entries one or more \hyperref[sec:metadata]{metadata} tables.
+They have their own entries in the Dataset table, a number of entries in the \tblref{DatasetComposition} table, and potentially entries in one or more \hyperref[sec:metadata]{metadata} tables.
 This means that they must be explicitly created (though unlike other datasets, this can be done without a Datastore) before they can be retreived.
 
 \section{DataUnits}
@@ -262,7 +262,7 @@ The full set of Execution columns can be found in Table~\ref{tbl:Execution}.
 \subsection{Run}
 \label{sec:run}
 
-\tblref{Run} is specialization of Execution used to capture coarse provenance.
+\tblref{Run} is a specialization of Execution used to capture coarse provenance.
 Every Dataset and \hyperref[sec:quantum]{Quantum} must be associated with a Run.
 
 For Datasets produced by SuperTask Pipelines, a Run represents an execution of a single Pipeline with no change to its configuration or the software environment.
