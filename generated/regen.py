@@ -200,11 +200,12 @@ def printSchemaGraph(printer, schema):
         p2.direct('edge [dir=both]')
         p2.direct('rankdir=LR')
         p2.direct('concentrate=false')
-        for table in schema.tables.values():
+        tablesSorted = sorted(schema.tables.values(), key=lambda t: t.name)
+        for table in tablesSorted:
             printTableGraphNode(p2, table)
         n = 0
-        for table in schema.tables.values():
-            for constraint in table.foreign_key_constraints:
+        for table in tablesSorted:
+            for constraint in sorted(table.foreign_key_constraints, key=lambda fk: str(fk.elements)):
                 printForeignKeyGraphEdge(p2, constraint, color=colors[n % len(colors)])
                 n += 1
 

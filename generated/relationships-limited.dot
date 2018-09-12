@@ -27,39 +27,6 @@ digraph relationships
       <tr><td port="label">label</td></tr>
     </table>
   >];
-  DatasetComposition
-  [label=<
-    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
-      <tr><td><b>DatasetComposition</b></td></tr>
-      <tr><td port="parent_dataset_id">parent_dataset_id</td></tr>
-      <tr><td port="component_dataset_id">component_dataset_id</td></tr>
-      <tr><td port="component_name">component_name</td></tr>
-    </table>
-  >];
-  DatasetType
-  [label=<
-    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
-      <tr><td><b>DatasetType</b></td></tr>
-      <tr><td port="dataset_type_name">dataset_type_name</td></tr>
-      <tr><td port="storage_class">storage_class</td></tr>
-    </table>
-  >];
-  DatasetTypeUnits
-  [label=<
-    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
-      <tr><td><b>DatasetTypeUnits</b></td></tr>
-      <tr><td port="dataset_type_name">dataset_type_name</td></tr>
-      <tr><td port="unit_name">unit_name</td></tr>
-    </table>
-  >];
-  DatasetTypeMetadata
-  [label=<
-    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
-      <tr><td><b>DatasetTypeMetadata</b></td></tr>
-      <tr><td port="dataset_type_name">dataset_type_name</td></tr>
-      <tr><td port="metadata_name">metadata_name</td></tr>
-    </table>
-  >];
   DatasetCollection
   [label=<
     <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
@@ -68,33 +35,13 @@ digraph relationships
       <tr><td port="collection">collection</td></tr>
     </table>
   >];
-  Execution
+  DatasetComposition
   [label=<
     <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
-      <tr><td><b>Execution</b></td></tr>
-      <tr><td port="execution_id">execution_id</td></tr>
-      <tr><td port="start_time">start_time</td></tr>
-      <tr><td port="end_time">end_time</td></tr>
-      <tr><td port="host">host</td></tr>
-    </table>
-  >];
-  Run
-  [label=<
-    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
-      <tr><td><b>Run</b></td></tr>
-      <tr><td port="execution_id">execution_id</td></tr>
-      <tr><td port="collection">collection</td></tr>
-      <tr><td port="environment_id">environment_id</td></tr>
-      <tr><td port="pipeline_id">pipeline_id</td></tr>
-    </table>
-  >];
-  Quantum
-  [label=<
-    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
-      <tr><td><b>Quantum</b></td></tr>
-      <tr><td port="execution_id">execution_id</td></tr>
-      <tr><td port="task">task</td></tr>
-      <tr><td port="run_id">run_id</td></tr>
+      <tr><td><b>DatasetComposition</b></td></tr>
+      <tr><td port="parent_dataset_id">parent_dataset_id</td></tr>
+      <tr><td port="component_dataset_id">component_dataset_id</td></tr>
+      <tr><td port="component_name">component_name</td></tr>
     </table>
   >];
   DatasetConsumers
@@ -114,20 +61,73 @@ digraph relationships
       <tr><td port="datastore_name">datastore_name</td></tr>
     </table>
   >];
-  Dataset:run_id -> Run:execution_id [arrowtail=crowtee arrowhead=nonetee color=lawngreen]
-  Dataset:dataset_type_name -> DatasetType:dataset_type_name [arrowtail=crowtee arrowhead=nonetee color=indigo]
-  Dataset:quantum_id -> Quantum:execution_id [arrowtail=crowtee arrowhead=nonetee color=magenta1]
-  DatasetComposition:parent_dataset_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=orangered]
+  DatasetType
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>DatasetType</b></td></tr>
+      <tr><td port="dataset_type_name">dataset_type_name</td></tr>
+      <tr><td port="storage_class">storage_class</td></tr>
+    </table>
+  >];
+  DatasetTypeMetadata
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>DatasetTypeMetadata</b></td></tr>
+      <tr><td port="dataset_type_name">dataset_type_name</td></tr>
+      <tr><td port="metadata_name">metadata_name</td></tr>
+    </table>
+  >];
+  DatasetTypeUnits
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>DatasetTypeUnits</b></td></tr>
+      <tr><td port="dataset_type_name">dataset_type_name</td></tr>
+      <tr><td port="unit_name">unit_name</td></tr>
+    </table>
+  >];
+  Execution
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Execution</b></td></tr>
+      <tr><td port="execution_id">execution_id</td></tr>
+      <tr><td port="start_time">start_time</td></tr>
+      <tr><td port="end_time">end_time</td></tr>
+      <tr><td port="host">host</td></tr>
+    </table>
+  >];
+  Quantum
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Quantum</b></td></tr>
+      <tr><td port="execution_id">execution_id</td></tr>
+      <tr><td port="task">task</td></tr>
+      <tr><td port="run_id">run_id</td></tr>
+    </table>
+  >];
+  Run
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Run</b></td></tr>
+      <tr><td port="execution_id">execution_id</td></tr>
+      <tr><td port="collection">collection</td></tr>
+      <tr><td port="environment_id">environment_id</td></tr>
+      <tr><td port="pipeline_id">pipeline_id</td></tr>
+    </table>
+  >];
+  Dataset:dataset_type_name -> DatasetType:dataset_type_name [arrowtail=crowtee arrowhead=nonetee color=lawngreen]
+  Dataset:quantum_id -> Quantum:execution_id [arrowtail=crowtee arrowhead=nonetee color=indigo]
+  Dataset:run_id -> Run:execution_id [arrowtail=crowtee arrowhead=nonetee color=magenta1]
+  DatasetCollection:dataset_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=orangered]
   DatasetComposition:component_dataset_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=lightskyblue3]
-  DatasetTypeUnits:dataset_type_name -> DatasetType:dataset_type_name [arrowtail=nonetee arrowhead=nonetee color=lightcoral]
-  DatasetTypeMetadata:dataset_type_name -> DatasetType:dataset_type_name [arrowtail=nonetee arrowhead=nonetee color=mediumpurple]
-  DatasetCollection:dataset_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=forestgreen]
-  Run:execution_id -> Execution:execution_id [arrowtail=nonetee arrowhead=nonetee color=royalblue]
-  Run:pipeline_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=firebrick1]
-  Run:environment_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=yellow4]
-  Quantum:run_id -> Run:execution_id [arrowtail=crowtee arrowhead=nonetee color=navyblue]
-  Quantum:execution_id -> Execution:execution_id [arrowtail=nonetee arrowhead=nonetee color=lawngreen]
-  DatasetConsumers:dataset_id -> Dataset:dataset_id [arrowtail=nonetee arrowhead=nonetee color=indigo]
-  DatasetConsumers:quantum_id -> Quantum:execution_id [arrowtail=nonetee arrowhead=nonetee color=magenta1]
-  DatasetStorage:dataset_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=orangered]
+  DatasetComposition:parent_dataset_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=lightcoral]
+  DatasetConsumers:dataset_id -> Dataset:dataset_id [arrowtail=nonetee arrowhead=nonetee color=mediumpurple]
+  DatasetConsumers:quantum_id -> Quantum:execution_id [arrowtail=nonetee arrowhead=nonetee color=forestgreen]
+  DatasetStorage:dataset_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=royalblue]
+  DatasetTypeMetadata:dataset_type_name -> DatasetType:dataset_type_name [arrowtail=nonetee arrowhead=nonetee color=firebrick1]
+  DatasetTypeUnits:dataset_type_name -> DatasetType:dataset_type_name [arrowtail=nonetee arrowhead=nonetee color=yellow4]
+  Quantum:execution_id -> Execution:execution_id [arrowtail=nonetee arrowhead=nonetee color=navyblue]
+  Quantum:run_id -> Run:execution_id [arrowtail=crowtee arrowhead=nonetee color=lawngreen]
+  Run:environment_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=indigo]
+  Run:pipeline_id -> Dataset:dataset_id [arrowtail=crowtee arrowhead=nonetee color=magenta1]
+  Run:execution_id -> Execution:execution_id [arrowtail=nonetee arrowhead=nonetee color=orangered]
 }
