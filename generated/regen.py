@@ -335,7 +335,7 @@ def keepOnly(config, toKeep):
     result = copy.deepcopy(config)
     for name, description in config["tables"].items():
         if name not in toKeep:
-            del result.data["tables"][name]   # workaround for del result["tables"][name] not working
+            del result["tables", name]
         else:
             fks = []
             for fk in description.get("foreignKeys", ()):
@@ -343,7 +343,7 @@ def keepOnly(config, toKeep):
                 table, _ = tgt[0].split(".")
                 if table in toKeep:
                     fks.append(fk)
-            result.data["tables"][name]["foreignKeys"] = fks
+            result["tables", name, "foreignKeys"] = fks
     return result
 
 
