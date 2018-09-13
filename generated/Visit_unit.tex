@@ -38,15 +38,15 @@ same for all Exposures in a \unitref{Visit}.
           \\
       \hline
       datetime\_begin & datetime &  &
-              Timestamp of the beginning of the \unitref{Visit}.  This
+              TAI timestamp of the beginning of the \unitref{Visit}.  This
               should be the same as the datetime\_begin of the first
               \unitref{Exposure} associated with this \unitref{Visit}.
           \\
       \hline
       datetime\_end & datetime &  &
-              Timestamp of the end of the \unitref{Visit}.  This should be
-              the same as the datetime\_end of the last \unitref{Exposure}
-              associated with this \unitref{Visit}.
+              TAI timestamp of the end of the \unitref{Visit}.  This should
+              be the same as the datetime\_end of the last
+              \unitref{Exposure} associated with this \unitref{Visit}.
           \\
       \hline
       exposure\_time & float &  &
@@ -54,55 +54,6 @@ same for all Exposures in a \unitref{Visit}.
               This should be equal to the sum of the exposure\_time values
               for all constituent Exposures (i.e. it should not include time
               between Exposures).
-          \\
-      \hline
-      earth\_rotation\_angle & float &  &
-              Earth rotation angle in degrees.
-          \\
-      \hline
-      boresight\_ra & float &  &
-              Position of the boresight in right ascension (decimal
-              degrees).
-          \\
-      \hline
-      boresight\_dec & float &  &
-              Position of the boresight in declination (decimal degrees).
-          \\
-      \hline
-      boresight\_alt & float &  &
-              Position of the boresight in altitude (decimal degrees).
-          \\
-      \hline
-      boresight\_az & float &  &
-              Position of the boresight in azimuth (decimal degrees).
-          \\
-      \hline
-      boresight\_hour\_angle & float &  &
-              Hour angle at the boresight.
-          \\
-      \hline
-      boresight\_parallactic\_angle & float &  &
-              Equal to the angle between the North celestial pole and Zenith
-              at the boresight. Or, the angular separation between two great
-              circle arcs that meet at the object, one passing through the
-              North celestial pole, and the other through zenith. For an
-              object on the meridian the angle is zero if it is South of
-              zenith and pi if it is North of zenith The angle is positive
-              for objects East of the meridian, and negative for objects to
-              the West.
-          \\
-      \hline
-      boresight\_airmass & float &  &
-              Airmass at the boresight, relative to zenith at sea level.
-          \\
-      \hline
-      rot\_angle & float &  &
-              Rotation angle of the focal plane w.r.t. nominal.
-          \\
-      \hline
-      local\_era & float &  &
-              Local sideral time on the meridian (equivalent, but not equal,
-              to Local Mean Sidereal Time).
           \\
       \hline
       seeing & float &  &

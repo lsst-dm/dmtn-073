@@ -55,7 +55,11 @@ would be the same for all Exposures within a \unitref{Visit}.
           \\
       \hline
       datetime\_begin & datetime &  &
-              Timestamp of the start of the \unitref{Exposure}.
+              TAI timestamp of the start of the \unitref{Exposure}.
+          \\
+      \hline
+      datetime\_end & datetime &  &
+              TAI timestamp of the end of the \unitref{Exposure}.
           \\
       \hline
       exposure\_time & float &  &
@@ -66,18 +70,6 @@ would be the same for all Exposures within a \unitref{Visit}.
       dark\_time & float &  &
               Duration of the \unitref{Exposure} with shutter closed
               (seconds).
-          \\
-      \hline
-      rot\_angle & float &  &
-              Rotation angle of the focal plane w.r.t. nominal
-          \\
-      \hline
-      boresight\_alt & float &  &
-              Position of the boresight in altitude (decimal degrees).
-          \\
-      \hline
-      boresight\_az & float &  &
-              Position of the boresight in azimuth (decimal degrees).
           \\
       \hline
     \end{tabular}

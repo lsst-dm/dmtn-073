@@ -3,21 +3,21 @@
   \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
   \hline
   dataset\_id & int & PRIMARY KEY &
-      a unique autoincrement field used the primary key for dataset.
+      A unique autoincrement field used the primary key for dataset.
       \\
   \hline
   dataset\_type\_name & str & NOT NULL &
-      the name of the \tblref{DatasetType} associated with this dataset;
+      The name of the \tblref{DatasetType} associated with this dataset;
       a reference to the \tblref{DatasetType} table.
       \\
   \hline
   run\_id & int & NOT NULL &
-      the id of the run that produced this dataset, providing access to
+      The id of the run that produced this dataset, providing access to
       coarse provenance information.
       \\
   \hline
   quantum\_id & int &  &
-      the id of the quantum that produced this dataset, providing access
+      The id of the quantum that produced this dataset, providing access
       to fine-grained provenance information. may be null for datasets
       not produced by running a supertask.
       \\
@@ -26,7 +26,7 @@
       \\
   \hline
   abstract\_filter & str &  &
-      string name for the abstract filter, frequently a single
+      String name for the abstract filter, frequently a single
       character.
       \\
   \hline
@@ -43,17 +43,17 @@
       \\
   \hline
   valid\_first & int &  &
-      first exposure identifier included in the range (inclusive).  may
+      First exposure identifier included in the range (inclusive).  may
       be zero to indicate an open interval.
       \\
   \hline
   valid\_last & int &  &
-      last exposure identifier included in the range (inclusive).  may
+      Last exposure identifier included in the range (inclusive).  may
       be max(int) to indicate an open interval.
       \\
   \hline
   skypix & int &  &
-      unique id of a pixel in the hierarchical pixelization, using a
+      Unique id of a pixel in the hierarchical pixelization, using a
       numbering scheme that also encodes the level of the pixel.
       \\
   \hline
@@ -67,7 +67,7 @@
       \\
   \hline
   label & str &  &
-      a string value composed only of letters, numbers, and underscores.
+      A string value composed only of letters, numbers, and underscores.
       \\
   \hline
 \end{tabular}

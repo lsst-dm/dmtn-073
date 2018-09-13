@@ -51,11 +51,9 @@ digraph relationships
       <tr><td port="physical_filter">physical_filter</td></tr>
       <tr><td port="snap">snap</td></tr>
       <tr><td port="datetime_begin">datetime_begin</td></tr>
+      <tr><td port="datetime_end">datetime_end</td></tr>
       <tr><td port="exposure_time">exposure_time</td></tr>
       <tr><td port="dark_time">dark_time</td></tr>
-      <tr><td port="rot_angle">rot_angle</td></tr>
-      <tr><td port="boresight_alt">boresight_alt</td></tr>
-      <tr><td port="boresight_az">boresight_az</td></tr>
     </table>
   >];
   Patch
@@ -119,16 +117,6 @@ digraph relationships
       <tr><td port="datetime_begin">datetime_begin</td></tr>
       <tr><td port="datetime_end">datetime_end</td></tr>
       <tr><td port="exposure_time">exposure_time</td></tr>
-      <tr><td port="earth_rotation_angle">earth_rotation_angle</td></tr>
-      <tr><td port="boresight_ra">boresight_ra</td></tr>
-      <tr><td port="boresight_dec">boresight_dec</td></tr>
-      <tr><td port="boresight_alt">boresight_alt</td></tr>
-      <tr><td port="boresight_az">boresight_az</td></tr>
-      <tr><td port="boresight_hour_angle">boresight_hour_angle</td></tr>
-      <tr><td port="boresight_parallactic_angle">boresight_parallactic_angle</td></tr>
-      <tr><td port="boresight_airmass">boresight_airmass</td></tr>
-      <tr><td port="rot_angle">rot_angle</td></tr>
-      <tr><td port="local_era">local_era</td></tr>
       <tr><td port="seeing">seeing</td></tr>
       <tr><td port="region">region</td></tr>
     </table>
