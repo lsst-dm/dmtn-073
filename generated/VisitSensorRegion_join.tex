@@ -1,0 +1,43 @@
+\subsubsection{VisitSensorRegion}
+\label{join:VisitSensorRegion}
+
+A many-to-many join table that provides region information for
+\unitref{Visit}-\unitref{Sensor} combinations.
+
+\textbf{Table:} \hyperref[tbl:VisitSensorRegion]{VisitSensorRegion}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & PRIMARY KEY &
+              Name of the \unitref{Camera} associated with the
+              \unitref{Visit} and \unitref{Sensor}.
+          \\
+      \hline
+      visit & int & PRIMARY KEY &
+              \unitref{Visit} ID
+          \\
+      \hline
+      sensor & int & PRIMARY KEY &
+              \unitref{Sensor} ID
+          \\
+      \hline
+      region & bytes &  &
+              A spatial region on the sky that bounds the area associated
+              with this \unitref{Visit}+\unitref{Sensor} combination.  This
+              is expected to be more precise than the SkyPixels associated
+              with the \unitref{Visit}+\unitref{Sensor} (see
+              \tblref{VisitSensorSkyPixJoin}), but may still be larger than
+              the true region as long as it fully covers it. Regions are
+              lsst.sphgeom.ConvexPolygon objects persisted as portable (but
+              not human-readable) bytestrings using the encode and decode
+              methods.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{VisitSensorRegion Columns}
+  \label{tbl:VisitSensorRegion}
+\end{table}

@@ -1,0 +1,73 @@
+\begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+  \hline
+  \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+  \hline
+  dataset\_id & int & PRIMARY KEY &
+      A unique autoincrement field used the primary key for dataset.
+      \\
+  \hline
+  dataset\_type\_name & str & NOT NULL &
+      The name of the \tblref{DatasetType} associated with this dataset;
+      a reference to the \tblref{DatasetType} table.
+      \\
+  \hline
+  run\_id & int & NOT NULL &
+      The id of the run that produced this dataset, providing access to
+      coarse provenance information.
+      \\
+  \hline
+  quantum\_id & int &  &
+      The id of the quantum that produced this dataset, providing access
+      to fine-grained provenance information. may be null for datasets
+      not produced by running a supertask.
+      \\
+  \hline
+  camera & str &  &
+      \\
+  \hline
+  abstract\_filter & str &  &
+      String name for the abstract filter, frequently a single
+      character.
+      \\
+  \hline
+  physical\_filter & str &  &
+      \\
+  \hline
+  sensor & str &  &
+      \\
+  \hline
+  visit & int &  &
+      \\
+  \hline
+  exposure & int &  &
+      \\
+  \hline
+  valid\_first & int &  &
+      First exposure identifier included in the range (inclusive).  may
+      be zero to indicate an open interval.
+      \\
+  \hline
+  valid\_last & int &  &
+      Last exposure identifier included in the range (inclusive).  may
+      be max(int) to indicate an open interval.
+      \\
+  \hline
+  skypix & int &  &
+      Unique id of a pixel in the hierarchical pixelization, using a
+      numbering scheme that also encodes the level of the pixel.
+      \\
+  \hline
+  skymap & str &  &
+      \\
+  \hline
+  tract & int &  &
+      \\
+  \hline
+  patch & int &  &
+      \\
+  \hline
+  label & str &  &
+      A string value composed only of letters, numbers, and underscores.
+      \\
+  \hline
+\end{tabular}

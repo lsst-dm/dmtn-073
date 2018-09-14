@@ -1,0 +1,38 @@
+\subsubsection{SkyMap}
+\label{unit:SkyMap}
+
+A set of Tracts and Patches that subdivide the sky into rectangular
+regions with simple projections and intentional overlaps.
+
+\textbf{Dependencies:} none
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{skymap (str):}
+      A human-readable name for the SkyMap, used as its unique
+      identifier.
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:SkyMap]{SkyMap}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      skymap & str & PRIMARY KEY &
+              A human-readable name for the \unitref{SkyMap}, used as its
+              unique identifier.
+          \\
+      \hline
+      hash & str & NOT NULL &
+              A hash of the \unitref{SkyMap}'s parameters, used to prevent
+              duplicate SkyMaps with the different names from being
+              registered.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{SkyMap Columns}
+  \label{tbl:SkyMap}
+\end{table}

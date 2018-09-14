@@ -1,0 +1,58 @@
+\subsubsection{VisitSensorTractJoin}
+\label{join:VisitSensorTractJoin}
+
+A spatial join table that relates \unitref{Visit}+\unitref{Sensor} to
+\unitref{Tract} via \unitref{SkyPix}. Should be implemented as a view;
+it may be materialized as long as it can be kept up to date when new
+Visits or SkyMaps are added. If a database UDF is available to
+determine whether two regions overlap, we could include that in this
+view to refine the results. For now, we will assume that such a UDF is
+not available.
+
+\textbf{View:} \hyperref[tbl:VisitSensorTractJoin]{VisitSensorTractJoin}, defined as:
+\begin{verbatim}
+  SELECT DISTINCT
+  VisitSensorSkyPixJoin.camera,
+  VisitSensorSkyPixJoin.visit,
+  VisitSensorSkyPixJoin.sensor,
+  TractSkyPixJoin.skymap,
+  TractSkyPixJoin.tract
+FROM
+  VisitSensorSkyPixJoin INNER JOIN TractSkyPixJoin ON (
+    VisitSensorSkyPixJoin.skypix = TractSkyPixJoin.skypix
+  );
+
+\end{verbatim}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & NOT NULL &
+              Name of the \unitref{Camera} associated with the
+              \unitref{Visit} and \unitref{Sensor}.
+          \\
+      \hline
+      visit & int & NOT NULL &
+              \unitref{Visit} ID
+          \\
+      \hline
+      sensor & int & NOT NULL &
+              \unitref{Sensor} ID
+          \\
+      \hline
+      skymap & str & NOT NULL &
+              Name of the \unitref{SkyMap} associated with the
+              \unitref{Tract}.
+          \\
+      \hline
+      tract & int & NOT NULL &
+              \unitref{Tract} ID
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{VisitSensorTractJoin Columns}
+  \label{tbl:VisitSensorTractJoin}
+\end{table}

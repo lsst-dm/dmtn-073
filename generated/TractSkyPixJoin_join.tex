@@ -1,0 +1,37 @@
+\subsubsection{TractSkyPixJoin}
+\label{join:TractSkyPixJoin}
+
+A spatial join table that relates \unitref{Tract} to \unitref{SkyPix},
+also used as an intermediate when relating \unitref{Tract} to
+\unitref{Camera} DataUnits. This can and probably should be
+implemented as a trivial view on \tblref{PatchSkyPixJoin}.
+
+\textbf{View:} \hyperref[tbl:TractSkyPixJoin]{TractSkyPixJoin}, defined as:
+\begin{verbatim}
+  SELECT DISTINCT skymap, tract, skypix FROM PatchSkyPixJoin;
+
+\end{verbatim}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      skymap & str & NOT NULL &
+              Name of the \unitref{SkyMap} associated with the
+              \unitref{Tract}.
+          \\
+      \hline
+      tract & int & NOT NULL &
+              \unitref{Tract} ID
+          \\
+      \hline
+      skypix & int & NOT NULL &
+              ID of a \unitref{SkyPix} that overlaps the \unitref{Tract}.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{TractSkyPixJoin Columns}
+  \label{tbl:TractSkyPixJoin}
+\end{table}

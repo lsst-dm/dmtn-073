@@ -2,37 +2,21 @@ DOCTYPE = DMTN
 DOCNUMBER = 073
 DOCNAME = $(DOCTYPE)-$(DOCNUMBER)
 BRANCH = master
-SCHEMA_URL = https://raw.githubusercontent.com/lsst/daf_butler/$(BRANCH)/config/schema.yaml
 
 TABLES = Dataset DatasetType DatasetTypeUnits DatasetTypeMetadata DatasetComposition DatasetCollection \
-	Execution Run Quantum DatasetStorage VisitSensorRegion
+	Execution Run Quantum DatasetStorage
 COLUMNS = $(foreach tbl,$(TABLES),generated/$(tbl)_columns.tex)
 UNITS = AbstractFilter Label SkyPix Camera Sensor PhysicalFilter Exposure Visit ExposureRange \
 	SkyMap Tract Patch
 UNIT_INCS = $(foreach unit,$(UNITS),generated/$(unit)_unit.tex)
 JOINS = ExposureRangeJoin MultiCameraExposureJoin VisitSensorSkyPixJoin VisitSkyPixJoin PatchSkyPixJoin \
-	TractSkyPixJoin VisitSensorPatchJoin VisitSensorTractJoin VisitPatchJoin VisitTractJoin
+	TractSkyPixJoin VisitSensorPatchJoin VisitSensorTractJoin VisitPatchJoin VisitTractJoin VisitSensorRegion
 JOIN_INCS = $(foreach join,$(JOINS),generated/$(join)_join.tex)
-GRAPHS = generated/relationships-all.pdf DataUnitJoins.pdf DataUnitJoinsLegend.pdf \
-	generated/relationships-dataunits-only.pdf generated/relationships-no-dataunits.pdf
+GRAPHS = generated/relationships-limited.pdf generated/relationships-dataUnitsOnly.pdf \
+	DataUnitJoins.pdf DataUnitJoinsLegend.pdf
 
 $(DOCNAME).pdf: $(DOCNAME).tex $(COLUMNS) $(GRAPHS) $(UNIT_INCS) $(JOIN_INCS)
 	latexmk -bibtex -xelatex $(DOCNAME) -halt-on-error -interaction=nonstopmode -file-line-error -synctex=1
-
-generated/schema.yaml:
-	curl $(SCHEMA_URL) > generated/schema.yaml
-
-%_columns.tex: generated/schema.yaml generated/regen.py
-	python generated/regen.py $@
-
-%_unit.tex: generated/schema.yaml generated/regen.py
-	python generated/regen.py $@
-
-%_join.tex: generated/schema.yaml generated/regen.py
-	python generated/regen.py $@
-
-generated/relationships-%.dot: generated/schema.yaml generated/regen.py
-	python generated/regen.py $@
 
 generated/relationships-%.pdf: generated/relationships-%.dot
 	dot -Tpdf $< > $@

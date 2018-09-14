@@ -1,0 +1,39 @@
+\subsubsection{VisitSensorSkyPixJoin}
+\label{join:VisitSensorSkyPixJoin}
+
+A spatial join table that relates \unitref{Visit}+\unitref{Sensor} to
+\unitref{SkyPix}, also used as an intermediate when relating
+\unitref{Visit}+\unitref{Sensor} to \unitref{SkyMap} DataUnits.
+Entries are expected to be calculated outside the database and
+added/updated whenever \tblref{VisitSensorRegion} is.
+
+\textbf{Table:} \hyperref[tbl:VisitSensorSkyPixJoin]{VisitSensorSkyPixJoin}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & NOT NULL &
+              Name of the \unitref{Camera} associated with the
+              \unitref{Visit} and \unitref{Sensor}.
+          \\
+      \hline
+      visit & int & NOT NULL &
+              \unitref{Visit} ID
+          \\
+      \hline
+      sensor & int & NOT NULL &
+              \unitref{Sensor} ID
+          \\
+      \hline
+      skypix & int & NOT NULL &
+              ID of a \unitref{SkyPix} that overlaps the
+              \unitref{Visit}+\unitref{Sensor} combination.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{VisitSensorSkyPixJoin Columns}
+  \label{tbl:VisitSensorSkyPixJoin}
+\end{table}

@@ -1,0 +1,38 @@
+\subsubsection{VisitSkyPixJoin}
+\label{join:VisitSkyPixJoin}
+
+A spatial join table that relates Visitto \unitref{SkyPix}, also used
+as an intermediate when relating \unitref{Visit} to \unitref{SkyMap}
+DataUnits. This can and probably should be implemented as a trivial
+view on \tblref{VisitSensorSkyPixJoin}.
+
+\textbf{View:} \hyperref[tbl:VisitSkyPixJoin]{VisitSkyPixJoin}, defined as:
+\begin{verbatim}
+  SELECT DISTINCT camera, visit, skypix FROM VisitSensorSkyPixJoin;
+
+\end{verbatim}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & NOT NULL &
+              Name of the \unitref{Camera} associated with the
+              \unitref{Visit}.
+          \\
+      \hline
+      visit & int & NOT NULL &
+              \unitref{Visit} ID
+          \\
+      \hline
+      skypix & int & NOT NULL &
+              ID of a \unitref{SkyPix} that overlaps the \unitref{Visit}
+              combination.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{VisitSkyPixJoin Columns}
+  \label{tbl:VisitSkyPixJoin}
+\end{table}

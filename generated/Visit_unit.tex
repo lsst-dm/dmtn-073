@@ -1,0 +1,81 @@
+\subsubsection{Visit}
+\label{unit:Visit}
+
+A sequence of observations processed together, comprised of one or
+more Exposures from the same \unitref{Camera} with the same pointing
+and \unitref{PhysicalFilter}. The \unitref{Visit} table contains
+metadata that is both meaningful only for science Exposures and the
+same for all Exposures in a \unitref{Visit}.
+
+\textbf{Dependencies:} Camera
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{visit (int):}
+      Unique (with camera) integer identifier for this Visit.
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:Visit]{Visit}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & PRIMARY KEY &
+              The \unitref{Camera} used to observe the Exposures associated
+              with this \unitref{Visit}.
+          \\
+      \hline
+      visit & int & PRIMARY KEY &
+              Unique (with camera) integer identifier for this
+              \unitref{Visit}.
+          \\
+      \hline
+      physical\_filter & str & NOT NULL &
+              The bandpass filter used for all exposures in this
+              \unitref{Visit}.
+          \\
+      \hline
+      datetime\_begin & datetime &  &
+              TAI timestamp of the beginning of the \unitref{Visit}.  This
+              should be the same as the datetime\_begin of the first
+              \unitref{Exposure} associated with this \unitref{Visit}.
+          \\
+      \hline
+      datetime\_end & datetime &  &
+              TAI timestamp of the end of the \unitref{Visit}.  This should
+              be the same as the datetime\_end of the last
+              \unitref{Exposure} associated with this \unitref{Visit}.
+          \\
+      \hline
+      exposure\_time & float &  &
+              The total exposure time of the \unitref{Visit} in seconds.
+              This should be equal to the sum of the exposure\_time values
+              for all constituent Exposures (i.e. it should not include time
+              between Exposures).
+          \\
+      \hline
+      seeing & float &  &
+              Average seeing, measured as the FWHM of the Gaussian with the
+              same effective area (arcsec).
+          \\
+      \hline
+      region & bytes &  &
+              A spatial region on the sky that bounds the area covered by
+              the \unitref{Visit}.  This is expected to be more precise than
+              the region covered by the SkyPixels associated with the
+              \unitref{Visit}, but may still be larger than the
+              \unitref{Visit} as long as it fully covers it.  Must also
+              fully cover all regions in the \tblref{VisitSensorRegion}
+              entries associated with this \unitref{Visit}. Regions are
+              lsst.sphgeom.ConvexPolygon objects persisted as portable (but
+              not human-readable) bytestrings using the encode and decode
+              methods.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{Visit Columns}
+  \label{tbl:Visit}
+\end{table}

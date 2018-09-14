@@ -1,0 +1,79 @@
+\subsubsection{Exposure}
+\label{unit:Exposure}
+
+An observation associated with a particular camera.  All direct
+observations are identified with an \unitref{Exposure}, but derived
+datasets that may be based on more than one \unitref{Exposure} (e.g.
+multiple snaps) are typically identified with Visits instead, even for
+cameras that don't have multiple Exposures per \unitref{Visit}.  As a
+result, Cameras that don't have multiple Exposures per \unitref{Visit}
+will typically have \unitref{Visit} entries that are essentially
+duplicates of their \unitref{Exposure} entries. The \unitref{Exposure}
+table contains metadata entries that are relevant for calibration
+Exposures, and does not duplicate entries in \unitref{Visit} that
+would be the same for all Exposures within a \unitref{Visit}.
+
+\textbf{Dependencies:} Camera
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{exposure (int):}
+      Unique (with camera) integer identifier for this Exposure.
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:Exposure]{Exposure}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & PRIMARY KEY &
+              The \unitref{Camera} used to observe the \unitref{Exposure}.
+          \\
+      \hline
+      exposure & int & PRIMARY KEY &
+              Unique (with camera) integer identifier for this
+              \unitref{Exposure}.
+          \\
+      \hline
+      visit & int &  &
+              ID of the \unitref{Visit} this \unitref{Exposure} is
+              associated with.  Science observations should essentially
+              always be associated with a visit, but calibration
+              observations may not be.
+          \\
+      \hline
+      physical\_filter & str & NOT NULL &
+              The bandpass filter used for all exposures in this
+              \unitref{Visit}.
+          \\
+      \hline
+      snap & int &  &
+              If visit is not null, the index of this \unitref{Exposure} in
+              the \unitref{Visit}, starting from zero.
+          \\
+      \hline
+      datetime\_begin & datetime &  &
+              TAI timestamp of the start of the \unitref{Exposure}.
+          \\
+      \hline
+      datetime\_end & datetime &  &
+              TAI timestamp of the end of the \unitref{Exposure}.
+          \\
+      \hline
+      exposure\_time & float &  &
+              Duration of the \unitref{Exposure} with shutter open
+              (seconds).
+          \\
+      \hline
+      dark\_time & float &  &
+              Duration of the \unitref{Exposure} with shutter closed
+              (seconds).
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{Exposure Columns}
+  \label{tbl:Exposure}
+\end{table}

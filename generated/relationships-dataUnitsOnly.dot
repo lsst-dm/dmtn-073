@@ -1,0 +1,154 @@
+digraph relationships
+{
+  node [shape=plaintext fontname=helvetica fontsize=10]
+  edge [dir=both]
+  rankdir=LR
+  concentrate=false
+  AbstractFilter
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>AbstractFilter</b></td></tr>
+      <tr><td port="abstract_filter">abstract_filter</td></tr>
+    </table>
+  >];
+  Camera
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Camera</b></td></tr>
+      <tr><td port="camera">camera</td></tr>
+    </table>
+  >];
+  Dataset
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Dataset</b></td></tr>
+      <tr><td port="dataset_id">dataset_id</td></tr>
+      <tr><td port="dataset_type_name">dataset_type_name</td></tr>
+      <tr><td port="run_id">run_id</td></tr>
+      <tr><td port="quantum_id">quantum_id</td></tr>
+      <tr><td port="camera">camera</td></tr>
+      <tr><td port="abstract_filter">abstract_filter</td></tr>
+      <tr><td port="physical_filter">physical_filter</td></tr>
+      <tr><td port="sensor">sensor</td></tr>
+      <tr><td port="visit">visit</td></tr>
+      <tr><td port="exposure">exposure</td></tr>
+      <tr><td port="valid_first">valid_first</td></tr>
+      <tr><td port="valid_last">valid_last</td></tr>
+      <tr><td port="skypix">skypix</td></tr>
+      <tr><td port="skymap">skymap</td></tr>
+      <tr><td port="tract">tract</td></tr>
+      <tr><td port="patch">patch</td></tr>
+      <tr><td port="label">label</td></tr>
+    </table>
+  >];
+  Exposure
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Exposure</b></td></tr>
+      <tr><td port="camera">camera</td></tr>
+      <tr><td port="exposure">exposure</td></tr>
+      <tr><td port="visit">visit</td></tr>
+      <tr><td port="physical_filter">physical_filter</td></tr>
+      <tr><td port="snap">snap</td></tr>
+      <tr><td port="datetime_begin">datetime_begin</td></tr>
+      <tr><td port="datetime_end">datetime_end</td></tr>
+      <tr><td port="exposure_time">exposure_time</td></tr>
+      <tr><td port="dark_time">dark_time</td></tr>
+    </table>
+  >];
+  Patch
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Patch</b></td></tr>
+      <tr><td port="skymap">skymap</td></tr>
+      <tr><td port="tract">tract</td></tr>
+      <tr><td port="patch">patch</td></tr>
+      <tr><td port="cell_x">cell_x</td></tr>
+      <tr><td port="cell_y">cell_y</td></tr>
+      <tr><td port="region">region</td></tr>
+    </table>
+  >];
+  PhysicalFilter
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>PhysicalFilter</b></td></tr>
+      <tr><td port="camera">camera</td></tr>
+      <tr><td port="physical_filter">physical_filter</td></tr>
+      <tr><td port="abstract_filter">abstract_filter</td></tr>
+    </table>
+  >];
+  Sensor
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Sensor</b></td></tr>
+      <tr><td port="camera">camera</td></tr>
+      <tr><td port="sensor">sensor</td></tr>
+      <tr><td port="name">name</td></tr>
+      <tr><td port="group">group</td></tr>
+      <tr><td port="purpose">purpose</td></tr>
+    </table>
+  >];
+  SkyMap
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>SkyMap</b></td></tr>
+      <tr><td port="skymap">skymap</td></tr>
+      <tr><td port="hash">hash</td></tr>
+    </table>
+  >];
+  Tract
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Tract</b></td></tr>
+      <tr><td port="skymap">skymap</td></tr>
+      <tr><td port="tract">tract</td></tr>
+      <tr><td port="ra">ra</td></tr>
+      <tr><td port="dec">dec</td></tr>
+      <tr><td port="region">region</td></tr>
+    </table>
+  >];
+  Visit
+  [label=<
+    <table border="0" cellborder="1" cellpadding="3" cellspacing="0">
+      <tr><td><b>Visit</b></td></tr>
+      <tr><td port="camera">camera</td></tr>
+      <tr><td port="visit">visit</td></tr>
+      <tr><td port="physical_filter">physical_filter</td></tr>
+      <tr><td port="datetime_begin">datetime_begin</td></tr>
+      <tr><td port="datetime_end">datetime_end</td></tr>
+      <tr><td port="exposure_time">exposure_time</td></tr>
+      <tr><td port="seeing">seeing</td></tr>
+      <tr><td port="region">region</td></tr>
+    </table>
+  >];
+  Dataset:abstract_filter -> AbstractFilter:abstract_filter [arrowtail=crowtee arrowhead=nonetee color=lawngreen]
+  Dataset:camera -> Camera:camera [arrowtail=crowtee arrowhead=nonetee color=indigo]
+  Dataset:camera -> Exposure:camera [arrowtail=crowtee arrowhead=nonetee color=magenta1]
+  Dataset:exposure -> Exposure:exposure [arrowtail=crowtee arrowhead=nonetee color=magenta1]
+  Dataset:skymap -> Patch:skymap [arrowtail=crowtee arrowhead=nonetee color=orangered]
+  Dataset:tract -> Patch:tract [arrowtail=crowtee arrowhead=nonetee color=orangered]
+  Dataset:patch -> Patch:patch [arrowtail=crowtee arrowhead=nonetee color=orangered]
+  Dataset:camera -> PhysicalFilter:camera [arrowtail=crowtee arrowhead=nonetee color=lightskyblue3]
+  Dataset:physical_filter -> PhysicalFilter:physical_filter [arrowtail=crowtee arrowhead=nonetee color=lightskyblue3]
+  Dataset:camera -> Sensor:camera [arrowtail=crowtee arrowhead=nonetee color=lightcoral]
+  Dataset:sensor -> Sensor:sensor [arrowtail=crowtee arrowhead=nonetee color=lightcoral]
+  Dataset:skymap -> SkyMap:skymap [arrowtail=crowtee arrowhead=nonetee color=mediumpurple]
+  Dataset:skymap -> Tract:skymap [arrowtail=crowtee arrowhead=nonetee color=forestgreen]
+  Dataset:tract -> Tract:tract [arrowtail=crowtee arrowhead=nonetee color=forestgreen]
+  Dataset:camera -> Visit:camera [arrowtail=crowtee arrowhead=nonetee color=royalblue]
+  Dataset:visit -> Visit:visit [arrowtail=crowtee arrowhead=nonetee color=royalblue]
+  Exposure:camera -> Camera:camera [arrowtail=crowtee arrowhead=nonetee color=firebrick1]
+  Exposure:camera -> PhysicalFilter:camera [arrowtail=crowtee arrowhead=nonetee color=yellow4]
+  Exposure:physical_filter -> PhysicalFilter:physical_filter [arrowtail=crowtee arrowhead=nonetee color=yellow4]
+  Exposure:camera -> Visit:camera [arrowtail=crowtee arrowhead=nonetee color=navyblue]
+  Exposure:visit -> Visit:visit [arrowtail=crowtee arrowhead=nonetee color=navyblue]
+  Patch:skymap -> SkyMap:skymap [arrowtail=crowtee arrowhead=nonetee color=lawngreen]
+  Patch:skymap -> Tract:skymap [arrowtail=crowtee arrowhead=nonetee color=indigo]
+  Patch:tract -> Tract:tract [arrowtail=crowtee arrowhead=nonetee color=indigo]
+  PhysicalFilter:abstract_filter -> AbstractFilter:abstract_filter [arrowtail=crowtee arrowhead=nonetee color=magenta1]
+  Sensor:camera -> Camera:camera [arrowtail=crowtee arrowhead=nonetee color=orangered]
+  Tract:skymap -> SkyMap:skymap [arrowtail=crowtee arrowhead=nonetee color=lightskyblue3]
+  Visit:camera -> Camera:camera [arrowtail=crowtee arrowhead=nonetee color=lightcoral]
+  Visit:camera -> PhysicalFilter:camera [arrowtail=crowtee arrowhead=nonetee color=mediumpurple]
+  Visit:physical_filter -> PhysicalFilter:physical_filter [arrowtail=crowtee arrowhead=nonetee color=mediumpurple]
+}

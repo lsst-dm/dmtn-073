@@ -1,0 +1,54 @@
+\subsubsection{Sensor}
+\label{unit:Sensor}
+
+A sensor associated with a particular \unitref{Camera} (not an
+observation of that sensor; that requires specifying an exposure or
+visit as well).
+
+\textbf{Dependencies:} Camera
+
+\textbf{Value Fields:}
+\begin{itemize}
+  \item \textbf{sensor (str):}
+      A unique (with Camera) integer identifier for the Sensor.
+\end{itemize}
+
+\textbf{Table:} \hyperref[tbl:Sensor]{Sensor}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera & str & PRIMARY KEY &
+              Name of the \unitref{Camera} with which this \unitref{Sensor}
+              is associated.
+          \\
+      \hline
+      sensor & int & PRIMARY KEY &
+              A unique (with \unitref{Camera}) integer identifier for the
+              \unitref{Sensor}.
+          \\
+      \hline
+      name & str &  &
+              An alternate string identifer for the sensor; may or may not
+              be unique within a \unitref{Camera}.
+          \\
+      \hline
+      group & str &  &
+              A string name for a group of sensors with a
+              \unitref{Camera}-dependent interpretation, such as LSST's
+              rafts.
+          \\
+      \hline
+      purpose & str &  &
+              Role of the \unitref{Sensor}; typically one of ``SCIENCE'',
+              ``WAVEFRONT'', or ``GUIDE'', though Cameras may define
+              additional values.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{Sensor Columns}
+  \label{tbl:Sensor}
+\end{table}

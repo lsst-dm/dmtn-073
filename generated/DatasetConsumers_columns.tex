@@ -1,0 +1,19 @@
+\begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+  \hline
+  \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+  \hline
+  quantum\_id & int & NOT NULL &
+      A link to the associated \tblref{Quantum}.
+      \\
+  \hline
+  dataset\_id & int & NOT NULL &
+      A link to the associated \tblref{Dataset}.
+      \\
+  \hline
+  actual & bool & NOT NULL &
+      Whether the \tblref{Dataset} was actually used as an input by the
+      \tblref{Quantum} (as opposed to just predicted to be used during
+      preflight).
+      \\
+  \hline
+\end{tabular}

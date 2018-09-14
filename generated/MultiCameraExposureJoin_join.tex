@@ -1,0 +1,38 @@
+\subsubsection{MultiCameraExposureJoin}
+\label{join:MultiCameraExposureJoin}
+
+A join table that relates Exposures from different Cameras, with
+explicitly-created entries.  This is intended to be used primarily in
+calibration products production, to relate auxilliary telescope
+observations with the main camera observations they support.  It could
+also be used to relate CBP state (represented as CBP ``Exposures'')
+with actual main camera observations of the CBP.
+
+\textbf{Table:} \hyperref[tbl:MultiCameraExposureJoin]{MultiCameraExposureJoin}
+\begin{table}[!htb]
+  {\footnotesize
+    \begin{tabular}{| l | l | l | p{0.5\textwidth} |}
+      \hline
+      \textbf{Name} & \textbf{Type} & \textbf{Attributes} & \textbf{Description} \\
+      \hline
+      camera\_1 & str & NOT NULL &
+              \unitref{Camera} name for lhs \tblref{Dataset}.
+          \\
+      \hline
+      exposure\_1 & int & NOT NULL &
+              \unitref{Exposure} ID for lhs \tblref{Dataset}.
+          \\
+      \hline
+      camera\_2 & str & NOT NULL &
+              \unitref{Camera} name for rhs \tblref{Dataset}.
+          \\
+      \hline
+      exposure\_2 & int & NOT NULL &
+              \unitref{Exposure} ID for rhs \tblref{Dataset}.
+          \\
+      \hline
+    \end{tabular}
+  }
+  \caption{MultiCameraExposureJoin Columns}
+  \label{tbl:MultiCameraExposureJoin}
+\end{table}
